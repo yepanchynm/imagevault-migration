@@ -1,6 +1,7 @@
 import {storyblokService} from "./storyblokService.js";
 import { promises, existsSync, mkdirSync } from 'fs';
 import { join } from 'path'
+import {ReplaceStoryImagesService} from "./replaceStoryImagesService.js";
 
 const getDataFolderPath = () => {
     const path = join(import.meta.dirname, '..', 'data');
@@ -18,23 +19,12 @@ const getStoryFilename = (name) => {
 
 async function bootstrap() {
     try {
-        const allStories = await storyblokService.getAllStories()
-        await promises.writeFile(getStoryFilename('all'), JSON.stringify(allStories, null, 2));
-
         const data = await storyblokService.getStoryBySlug('en/main/demos/brights/demo-product')
-        if (data.id) {
-            const response = await storyblokService.updateStory(
-                data.id,
-                { ...data, name: 'Test from api v2' },
-                {
-                    force_update: 1,
-                    publish: 1,
-                }
-            );
-            console.log(response);
-        }
 
+        const replaceStoryImageService = new ReplaceStoryImagesService(data)
         await promises.writeFile(getStoryFilename('demo-product'), JSON.stringify(data, null, 2));
+        const newData = replaceStoryImageService.replace()
+        await promises.writeFile(getStoryFilename('demo-product-replaced'), JSON.stringify(newData, null, 2));
     } catch (err) {
         console.error(err);
     }
