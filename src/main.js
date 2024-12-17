@@ -1,12 +1,19 @@
 import {storyblokService} from "./storyblokService.js";
-import { promises } from 'fs';
+import { promises, existsSync, mkdirSync } from 'fs';
 import { join } from 'path'
 
-const allStoriesFilename = join(import.meta.dirname, '..', 'all-stories.json');
+const getDataFolderPath = () => {
+    const path = join(import.meta.dirname, '..', 'data');
+    if (!existsSync(path)) {
+        mkdirSync(path);
+    }
+
+    return path
+}
 
 const getStoryFilename = (name) => {
     const fileName = `${name}.stories.json`;
-    return join(import.meta.dirname, '..', 'data', fileName);
+    return join(getDataFolderPath(), fileName);
 }
 
 async function bootstrap() {
