@@ -35,6 +35,20 @@ class StoryblokService {
         return data.story
     }
 
+    async getComponentsList() {
+        const { data } = await updateInstance.get(`/components`)
+        return data
+    }
+
+    async getComponentById(id) {
+        const { data } = await updateInstance.get(`/components/${id}`)
+        return data
+    }
+
+    async updateComponentById(id, newData) {
+        return await updateInstance.put(`/components/${id}`, newData)
+    }
+
     async updateStory(storyId, newData, opts = {}) {
         return await updateInstance.put(`/stories/${storyId}`, {
             story: newData,
@@ -49,7 +63,7 @@ class StoryblokService {
             acl: 'public-read'
         });
 
-        const { post_url: upload_url, fields } = presignData;
+        const { post_url: upload_url, fields, id, meta_data } = presignData;
         const formData = new FormData();
         for (const [key, value] of Object.entries(fields)) {
             formData.append(key, value);
@@ -63,7 +77,11 @@ class StoryblokService {
 
         const fixedUrl = publicUrl.replace('s3.amazonaws.com/', '');
     
-        return fixedUrl;
+        return {
+            id,
+            filename: fixedUrl,
+            meta_data
+        };
     }
 }
 
