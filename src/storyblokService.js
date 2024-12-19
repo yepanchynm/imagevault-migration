@@ -1,4 +1,10 @@
 import { getInstance, updateInstance } from "./storyblokClient.js";
+import {configService} from "./configService.js";
+import FormData from 'form-data';
+import axios from "axios";
+
+const folderId = configService.get('STORYBLOK_FOLDER_ID');
+if (typeof folderId === "undefined") throw new Error("Storyblokasset missing");
 
 class StoryblokService {
     constructor () {}
@@ -34,6 +40,30 @@ class StoryblokService {
             story: newData,
             ...opts
         })
+    }
+
+    async uploadAsset(buffer, fileName) {
+        const { data: presignData } = await updateInstance.post(`/assets`, {
+            filename: fileName,
+            folder_id: folderId,
+            acl: 'public-read'
+        });
+
+        const { post_url: upload_url, fields } = presignData;
+        const formData = new FormData();
+        for (const [key, value] of Object.entries(fields)) {
+            formData.append(key, value);
+        }
+        formData.append('file', buffer, { filename: fileName });
+        await axios.post(upload_url, formData, {
+            headers: formData.getHeaders(),
+        });
+
+        const publicUrl = presignData.public_url;
+
+        const fixedUrl = publicUrl.replace('s3.amazonaws.com/', '');
+    
+        return fixedUrl;
     }
 }
 

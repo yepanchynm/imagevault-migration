@@ -31,26 +31,23 @@ export class ReplaceStoryImagesService {
         this.#storyData = storyData;
     }
 
-    replace() {
-        bypassObjectEntries(this.#storyData,
-            'plugin',
-            'image-vault',
-            async (item, parent) => {
-                const [mediaConversation] = item.item?.MediaConversions;
-                const {_uid} = item
+    replace(replacesUrls) {
+        bypassObjectEntries(this.#storyData, 'plugin', 'image-vault', async (item) => {
+            item.item?.MediaConversions?.forEach(media => {
+                const oldSrc = media.Url;
 
-                if (!mediaConversation) {
-                    console.error('No image')
-                    return;
+                const fileName = oldSrc.split('/').pop();
+                const newSrc = replacesUrls.find(urlMapping => urlMapping[fileName]);
+
+                if (newSrc) {
+                    const newUrl = newSrc[fileName];
+                    media.Url = newUrl;
+                    media.Html = media.Html.replace(/src="[^"]*"/, `src="${newUrl}"`);
                 }
+            });
+        });
 
-                removeObjectByValue(parent, '_uid', _uid)
-
-                console.log(_uid, parent._uid)
-            }
-        )
-
-        return this
+        return this;
     }
 
     get() {
