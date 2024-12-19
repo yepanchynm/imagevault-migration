@@ -3,15 +3,17 @@ import { promises, existsSync, mkdirSync } from 'fs';
 import { join } from 'path'
 import {ReplaceStoryImagesService} from "./replaceStoryImagesService.js";
 import ImageVaultService from './imageVault/imageVaultService.js';
+import { fileURLToPath } from 'url';
 import axios from "axios";
 
 const getDataFolderPath = () => {
-    const path = join(import.meta.dirname, '..', 'data');
+    const __dirname = fileURLToPath(import.meta.url).replace(/\/[^\/]*$/, '');
+    const path = join(__dirname, '..', 'data');
     if (!existsSync(path)) {
         mkdirSync(path);
     }
 
-    return path
+    return path;
 }
 
 const getStoryFilename = (name) => {
@@ -40,12 +42,13 @@ async function bootstrap() {
             const storyblokUrl = await storyblokService.uploadAsset(buffer, fileName)
             replacesUrls.push({[url.split('/').pop()] : storyblokUrl})
         }
+
         const replaceStoryImageService = new ReplaceStoryImagesService(data)
 
-        await promises.writeFile(getStoryFilename('demo-product'), JSON.stringify(data, null, 2));
+        await promises.writeFile(getStoryFilename('demo-vlad'), JSON.stringify(data, null, 2));
 
         const newData = replaceStoryImageService.replace(replacesUrls).get()
-        await promises.writeFile(getStoryFilename('demo-product-replaced'), JSON.stringify(newData, null, 2));
+        await promises.writeFile(getStoryFilename('demo-vlad-replaced'), JSON.stringify(newData, null, 2));
 
         if (newData.id) {
             const response = await storyblokService.updateStory(newData.id, newData, {
