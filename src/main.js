@@ -19,6 +19,12 @@ const getStoryFilename = (name) => {
     return join(getDataFolderPath(), fileName);
 }
 
+// TODO 
+
+// Improve filtering imageVault urls (To not lose unique image)
+// Imrpove matching urls
+// Transfer images to correct folder (now uploads to all assets)
+
 async function bootstrap() {
     try {
         const imageVaultService = new ImageVaultService();
