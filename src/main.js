@@ -19,12 +19,21 @@ const getStoryFilename = (name) => {
 
 async function bootstrap() {
     try {
-        const data = await storyblokService.getStoryBySlug('en/main/demos/brights/demo-product')
+        const data = await storyblokService.getStoryBySlug('en/main/demos/brights/demo-product-maksym')
 
         const replaceStoryImageService = new ReplaceStoryImagesService(data)
         await promises.writeFile(getStoryFilename('demo-product'), JSON.stringify(data, null, 2));
-        const newData = replaceStoryImageService.replace()
+
+        const newData = replaceStoryImageService.replace().get()
         await promises.writeFile(getStoryFilename('demo-product-replaced'), JSON.stringify(newData, null, 2));
+
+        if (newData.id) {
+            const response = await storyblokService.updateStory(newData.id, newData, {
+                force_update: 1,
+                publish: 1,
+            })
+            console.log(`${newData.id} updated`)
+        }
     } catch (err) {
         console.error(err);
     }
