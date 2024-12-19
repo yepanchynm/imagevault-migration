@@ -27,4 +27,8 @@ export class ReplaceStoryImagesService {
             });
         });
     }
+
+    get() {
+        return this.#storyData
+    }
 }

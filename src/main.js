@@ -35,9 +35,19 @@ async function bootstrap() {
             replacesUrls.push({[url.split('/').pop()] : storyblokUrl})
         }
         const replaceStoryImageService = new ReplaceStoryImagesService(data)
-        await promises.writeFile(getStoryFilename('demo-vlad'), JSON.stringify(data, null, 2));
-        const newData = replaceStoryImageService.replace(replacesUrls)
-        await promises.writeFile(getStoryFilename('demo-vlad-replaced'), JSON.stringify(newData, null, 2));
+
+        await promises.writeFile(getStoryFilename('demo-product'), JSON.stringify(data, null, 2));
+
+        const newData = replaceStoryImageService.replace(replacesUrls).get()
+        await promises.writeFile(getStoryFilename('demo-product-replaced'), JSON.stringify(newData, null, 2));
+
+        if (newData.id) {
+            const response = await storyblokService.updateStory(newData.id, newData, {
+                force_update: 1,
+                publish: 1,
+            })
+            console.log(`${newData.id} updated`)
+        }
     } catch (err) {
         console.error(err);
     }
