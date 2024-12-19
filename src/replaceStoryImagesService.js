@@ -11,17 +11,20 @@ export class ReplaceStoryImagesService {
         this.#storyData = storyData;
     }
 
-    replace() {
-        return bypassObjectEntries(this.#storyData,
-            'plugin',
-            'image-vault',
-            async (item) => {
-                item.item?.MediaConversions?.forEach(media => {
-                    const newSrc = 'some_url'
-                    media.Url = newSrc
-                    media.Html = media.Html.replace(/src="[^"]*"/, `src="${newSrc}"`)
-                })
-            }
-        )
+    replace(replacesUrls) {
+        return bypassObjectEntries(this.#storyData, 'plugin', 'image-vault', async (item) => {
+            item.item?.MediaConversions?.forEach(media => {
+                const oldSrc = media.Url;
+    
+                const fileName = oldSrc.split('/').pop();
+                const newSrc = replacesUrls.find(urlMapping => urlMapping[fileName]);
+    
+                if (newSrc) {
+                    const newUrl = newSrc[fileName];
+                    media.Url = newUrl;
+                    media.Html = media.Html.replace(/src="[^"]*"/, `src="${newUrl}"`);
+                }
+            });
+        });
     }
 }
