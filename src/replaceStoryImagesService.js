@@ -1,5 +1,25 @@
 import {bypassObjectEntries} from "./helpers/bypassObjectEntries.js";
 
+function removeObjectByValue(obj, key, value) {
+    if (Array.isArray(obj)) {
+        return obj.filter(item => {
+            if (typeof item === "object") {
+                return removeObjectByValue(item, key, value);
+            }
+            return item[key] !== value;
+        });
+    } else if (typeof obj === "object" && obj !== null) {
+        for (const [k, v] of Object.entries(obj)) {
+            if (k === key && v === value) {
+                delete obj[k];
+            } else if (typeof v === "object") {
+                obj[k] = removeObjectByValue(v, key, value);
+            }
+        }
+    }
+    return obj;
+}
+
 export class ReplaceStoryImagesService {
     #storyData
     result = null

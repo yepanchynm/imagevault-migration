@@ -1,20 +1,25 @@
-export function bypassObjectEntries(obj, key, value, callback) {
+export async function bypassObjectEntries(obj, key, value, callback) {
     let results = [];
 
-    function search(item) {
+    async function search(item, parent) {
         if (Array.isArray(item)) {
-            item.forEach(search);
+            for (const value of item) {
+                await search(value, item)
+            }
         } else if (item && typeof item === "object") {
             if (item[key] === value) {
                 results.push(item);
                 if (typeof callback === "function") {
-                    callback(item)
+                    await callback(item, parent)
                 }
             }
-            Object.values(item).forEach(search);
+
+            for (const value of Object.values(item)) {
+                await search(value, item)
+            }
         }
     }
 
-    search(obj);
+    await search(obj, obj);
     return results;
 }

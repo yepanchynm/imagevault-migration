@@ -50,13 +50,18 @@ async function bootstrap() {
         const newData = replaceStoryImageService.replace(replacesUrls).get()
         await promises.writeFile(getStoryFilename('demo-vlad-replaced'), JSON.stringify(newData, null, 2));
 
-        if (newData.id) {
-            const response = await storyblokService.updateStory(newData.id, newData, {
-                force_update: 1,
-                publish: 1,
-            })
-            console.log(`${newData.id} updated`)
-        }
+        // if (newData.id) {
+        //     const response = await storyblokService.updateStory(newData.id, newData, {
+        //         force_update: 1,
+        //         publish: 1,
+        //     })
+        //
+        //     if (response.status === 200) {
+        //         console.log(`${newData.id} updated`)
+        //     } else {
+        //         console.log(`Failed to update story ID ${newData.id}`)
+        //     }
+        // }
     } catch (err) {
         console.error(err);
     }
