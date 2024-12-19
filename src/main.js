@@ -57,6 +57,48 @@ async function bootstrap() {
         await promises.writeFile(getStoryFilename('components'), JSON.stringify(components, null, 2));
         console.log('components file created')
 
+        const componentsWithImageVault = components?.components.filter(item => {
+            return Object.values(item.schema).some((fieldValue) => {
+                return fieldValue?.["field_type"] === "image-vault"
+            })
+        })
+
+        console.log(`Found ${componentsWithImageVault.length} components with "image-vault" plugin`)
+
+        await promises.writeFile(getStoryFilename('components-with-imagevault'), JSON.stringify(componentsWithImageVault, null, 2));
+        console.log('components with image vault file created')
+
+        const componentsWithImageVaultNames = componentsWithImageVault.reduce((acc, curr) => {
+            if (curr?.name) {
+                acc.push(curr.name)
+            }
+            return acc
+        }, [])
+
+        await promises.writeFile(getStoryFilename('components-with-imagevault-names'), JSON.stringify(componentsWithImageVaultNames, null, 2));
+        console.log('components with image names vault file created')
+
+        const componentsWhichHasWhilistedImageVault = components?.components.filter(item => {
+            return Object.values(item.schema).some((fieldValue) => {
+                return fieldValue?.["component_whitelist"]?.length > 0 && fieldValue?.["component_whitelist"].some(w => componentsWithImageVaultNames.includes(w))
+            })
+        })
+
+        await promises.writeFile(getStoryFilename('components-which-has-whilisted-ImageVault'), JSON.stringify(componentsWhichHasWhilistedImageVault, null, 2));
+        console.log('components which has whilisted ImageVault file created')
+
+        console.log(`Found ${componentsWhichHasWhilistedImageVault.length} components which has components with "image-vault" plugin`)
+
+        const componentsWhichHasWhilistedImageVaultNames = componentsWhichHasWhilistedImageVault.reduce((acc, curr) => {
+            if (curr?.name) {
+                acc.push(curr.name)
+            }
+            return acc
+        }, [])
+
+        await promises.writeFile(getStoryFilename('components-which-has-whilisted-ImageVault-names'), JSON.stringify(componentsWhichHasWhilistedImageVaultNames, null, 2));
+        console.log('components which has whilisted ImageVault Names file created')
+
         const imagevaultMigrationCopyComponent = components.components.filter(item => item.name === WORKING_COMPONENT_NAME)?.[0]
         const imagevaultMigrationCopyComponentId = imagevaultMigrationCopyComponent?.id
 
