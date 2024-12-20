@@ -48,9 +48,9 @@ async function bootstrap() {
             const buffer = Buffer.from(imageResponse.data, 'binary');
             const fileName = url.split('/').pop();
             const storyblokData = await storyblokService.uploadAsset(buffer, fileName)
-            replacesUrls.push({[url.split('/').pop()] : storyblokData.fixedUrl})
+            replacesUrls.push({[url.split('/').pop()] : storyblokData.filename})
 
-            const imageVaultImageData = await imageVaultService.searchImageData(storyblokData.fixedUrl.split('/').pop())
+            const imageVaultImageData = await imageVaultService.searchImageData(storyblokData.filename.split('/').pop())
             if (imageVaultImageData.categories && imageVaultImageData.categories.length > 0) {
                 let storyblockTags = await storyblokService.getTags()
                 let assetTags = []
