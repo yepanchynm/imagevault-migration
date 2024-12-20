@@ -1,25 +1,15 @@
-export async function bypassObjectEntries(obj, key, value, callback) {
-    let results = [];
-
-    async function search(item, parent) {
-        if (Array.isArray(item)) {
-            for (const value of item) {
-                await search(value, item)
-            }
-        } else if (item && typeof item === "object") {
-            if (item[key] === value) {
-                results.push(item);
-                if (typeof callback === "function") {
-                    await callback(item, parent)
-                }
-            }
-
-            for (const value of Object.values(item)) {
-                await search(value, item)
-            }
-        }
+export function bypassObjectEntries(obj, key, value, callback) {
+    if (Array.isArray(obj)) {
+        return obj.map(item => bypassObjectEntries(item, key, value, callback));
     }
-
-    await search(obj, obj);
-    return results;
+    if (typeof obj === 'object' && obj !== null) {
+        if (obj[key] === value) {
+            return callback(obj);
+        }
+        return Object.keys(obj).reduce((acc, _key) => {
+            acc[_key] = bypassObjectEntries(obj[_key], key, value, callback);
+            return acc;
+        }, {});
+    }
+    return obj;
 }
