@@ -39,8 +39,30 @@ async function bootstrap() {
             const imageResponse = await axios.get(url, { responseType: 'arraybuffer' })
             const buffer = Buffer.from(imageResponse.data, 'binary');
             const fileName = url.split('/').pop();
-            const storyblokUrl = await storyblokService.uploadAsset(buffer, fileName)
-            replacesUrls.push({[url.split('/').pop()] : storyblokUrl})
+            const storyblokData = await storyblokService.uploadAsset(buffer, fileName)
+            replacesUrls.push({[url.split('/').pop()] : storyblokData.fixedUrl})
+
+            const imageVaultImageData = await imageVaultService.searchImageData(storyblokData.fixedUrl.split('/').pop())
+            if (imageVaultImageData.categories && imageVaultImageData.categories.length > 0) {
+                let storyblockTags = await storyblokService.getTags()
+                let assetTags = []
+                for (const category of imageVaultImageData.categories) {
+                    let tag = storyblockTags
+                        ? storyblockTags.find(tag => tag.name.toLowerCase() === category.name.toLowerCase())
+                        : undefined
+
+                    if (!tag) {
+                        const createdTag = await storyblokService.createTag(category.name);
+                        storyblockTags = await storyblokService.getTags();
+                        tag = createdTag.internal_tag
+                    }
+                    
+                    assetTags.push(tag.id)
+                }
+
+                await storyblokService.updateAsset(storyblokData.id, { asset : { internal_tag_ids: assetTags } });
+            }
+            
         }
 
         const replaceStoryImageService = new ReplaceStoryImagesService(data)

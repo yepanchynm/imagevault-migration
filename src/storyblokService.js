@@ -42,14 +42,28 @@ class StoryblokService {
         })
     }
 
+    async updateAsset(id, data) {
+        return await updateInstance.put(`/assets/${id}`, data)
+    }
+
+    async getTags() {
+        const response = await updateInstance.get('/internal_tags')
+
+        return response.data.internal_tags;
+    }
+
+    async createTag(name) {
+        return await updateInstance.post('/internal_tags', { name })
+    }
+
     async uploadAsset(buffer, fileName) {
         const { data: presignData } = await updateInstance.post(`/assets`, {
             filename: fileName,
-            folder_id: folderId,
+            asset_folder_id: folderId,
             acl: 'public-read'
         });
 
-        const { post_url: upload_url, fields } = presignData;
+        const { post_url: upload_url, fields, id } = presignData;
         const formData = new FormData();
         for (const [key, value] of Object.entries(fields)) {
             formData.append(key, value);
@@ -63,7 +77,7 @@ class StoryblokService {
 
         const fixedUrl = publicUrl.replace('s3.amazonaws.com/', '');
     
-        return fixedUrl;
+        return { fixedUrl, id };
     }
 }
 
