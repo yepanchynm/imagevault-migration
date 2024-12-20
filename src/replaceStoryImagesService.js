@@ -1,28 +1,8 @@
 import {bypassObjectEntries} from "./helpers/bypassObjectEntries.js";
 
-function removeObjectByValue(obj, key, value) {
-    if (Array.isArray(obj)) {
-        return obj.filter(item => {
-            if (typeof item === "object") {
-                return removeObjectByValue(item, key, value);
-            }
-            return item[key] !== value;
-        });
-    } else if (typeof obj === "object" && obj !== null) {
-        for (const [k, v] of Object.entries(obj)) {
-            if (k === key && v === value) {
-                delete obj[k];
-            } else if (typeof v === "object") {
-                obj[k] = removeObjectByValue(v, key, value);
-            }
-        }
-    }
-    return obj;
-}
-
 export class ReplaceStoryImagesService {
     #storyData
-    result = null
+    #result = null
 
     constructor(storyData) {
         if (!storyData) {
@@ -32,25 +12,56 @@ export class ReplaceStoryImagesService {
     }
 
     replace(replacesUrls) {
-        bypassObjectEntries(this.#storyData, 'plugin', 'image-vault', async (item) => {
-            item.item?.MediaConversions?.forEach(media => {
-                const oldSrc = media.Url;
+        this.#result = bypassObjectEntries(this.#storyData, 'plugin', 'image-vault', (item) => {
+            if (!item.item?.MediaConversions?.[0]) {
+                console.error(`There is no picture in component ${item.id}`)
+                return
+            }
 
-                const fileName = oldSrc.split('/').pop();
-                const newSrc = replacesUrls.find(urlMapping => urlMapping[fileName]);
+            if (!item._uid) {
+                console.error(`There is no uid in component ${item.id}`)
+                return
+            }
 
-                if (newSrc) {
-                    const newUrl = newSrc[fileName];
-                    media.Url = newUrl;
-                    media.Html = media.Html.replace(/src="[^"]*"/, `src="${newUrl}"`);
-                }
-            });
-        });
+            const newData = {...item.item?.MediaConversions?.[0]}
+            const oldSrc = newData.Url;
 
+            const fileName = oldSrc.split('/').pop();
+            const newAssetData = replacesUrls.find(urlMapping => urlMapping[fileName])?.[fileName];
+
+            if (!newAssetData) return
+
+            const newUrl = newAssetData.filename;
+            newData.Url = newUrl;
+            newData.Html = newData.Html.replace(/src="[^"]*"/, `src="${newUrl}"`);
+            newData.Image = {
+                "id": newAssetData.id,
+                "alt": "",
+                "name": "",
+                "focus": "",
+                "title": "",
+                "source": "",
+                "filename": newAssetData.filename,
+                "copyright": "",
+                "fieldtype": "asset",
+                "meta_data": newAssetData.meta_data,
+                "is_external_url": false
+            }
+
+            console.log(`${item._uid} updated with new image src: ${newData.Url}`)
+
+            return [{
+                _uid: item._uid,
+                title: "New Block Title",
+                component: 'imageComponent',
+                description: "This is a new block added via API",
+                ...newData,
+            }]
+        })
         return this;
     }
 
     get() {
-        return this.#storyData
+        return this.#result
     }
 }
