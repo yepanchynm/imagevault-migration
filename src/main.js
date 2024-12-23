@@ -5,7 +5,6 @@ import {ReplaceStoryImagesService} from "./replaceStoryImagesService.js";
 import ImageVaultService from './imageVault/imageVaultService.js';
 import { fileURLToPath } from 'url';
 import axios from "axios";
-import {ChangeComponentSchemaService} from "./changeComponentSchemaService.js";
 
 const getDataFolderPath = () => {
     const __dirname = fileURLToPath(import.meta.url).replace(/\/[^\/]*$/, '');
@@ -28,8 +27,8 @@ const getStoryFilename = (name) => {
 // Imrpove matching urls
 // Transfer images to correct folder (now uploads to all assets)
 
-const WORKING_STORY_SLUG = 'en/main/demos/brights/demo-product-maksym'
-const WORKING_COMPONENT_NAME = 'imagevaultMigration_copy'
+const WORKING_STORY_SLUG = 'home'
+const WORKING_COMPONENT_NAME = 'teaser'
 
 async function bootstrap() {
     try {
@@ -112,19 +111,19 @@ async function bootstrap() {
         await promises.writeFile(getStoryFilename('imageVaultMigrationComponent'), JSON.stringify(imageVaultMigrationComponent, null, 2));
         console.log('imageVaultMigrationComponent file created')
 
-        const replaceComponentSchemaService = new ChangeComponentSchemaService(imageVaultMigrationComponent.component.schema)
-        const newSchema = replaceComponentSchemaService.replace().get()
-        imageVaultMigrationComponent.component.schema = {...newSchema}
-
-        await promises.writeFile(getStoryFilename('imageVaultMigrationComponent-replaced'), JSON.stringify(imageVaultMigrationComponent, null, 2));
-        console.log('imageVaultMigrationComponent-replaced file created')
-
-        const updateComponentResponse = await storyblokService.updateComponentById(imageVaultMigrationComponent.component.id, imageVaultMigrationComponent)
-        if (updateComponentResponse.status === 200) {
-            console.log(`${imageVaultMigrationComponent.component.id} updated`)
-        } else {
-            console.log(`Failed to update story ID ${imageVaultMigrationComponent.component.id}`)
-        }
+        // const replaceComponentSchemaService = new ChangeComponentSchemaService(imageVaultMigrationComponent.component.schema)
+        // const newSchema = replaceComponentSchemaService.replace().get()
+        // imageVaultMigrationComponent.component.schema = {...newSchema}
+        //
+        // await promises.writeFile(getStoryFilename('imageVaultMigrationComponent-replaced'), JSON.stringify(imageVaultMigrationComponent, null, 2));
+        // console.log('imageVaultMigrationComponent-replaced file created')
+        //
+        // const updateComponentResponse = await storyblokService.updateComponentById(imageVaultMigrationComponent.component.id, imageVaultMigrationComponent)
+        // if (updateComponentResponse.status === 200) {
+        //     console.log(`${imageVaultMigrationComponent.component.id} updated`)
+        // } else {
+        //     console.log(`Failed to update story ID ${imageVaultMigrationComponent.component.id}`)
+        // }
 
         const replaceStoryImageService = new ReplaceStoryImagesService(data)
         const newData = replaceStoryImageService.replace(replacesUrls).get()

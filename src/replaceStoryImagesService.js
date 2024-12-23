@@ -18,23 +18,15 @@ export class ReplaceStoryImagesService {
                 return
             }
 
-            if (!item._uid) {
-                console.error(`There is no uid in component ${item.id}`)
-                return
-            }
-
-            const newData = {...item.item?.MediaConversions?.[0]}
-            const oldSrc = newData.Url;
+            const newData = {...item.item}
+            const oldSrc = newData?.MediaConversions?.[0].Url;
 
             const fileName = oldSrc.split('/').pop();
             const newAssetData = replacesUrls.find(urlMapping => urlMapping[fileName])?.[fileName];
 
             if (!newAssetData) return
 
-            const newUrl = newAssetData.filename;
-            newData.Url = newUrl;
-            newData.Html = newData.Html.replace(/src="[^"]*"/, `src="${newUrl}"`);
-            newData.Image = {
+            newData.StoryblokImage = {
                 "id": newAssetData.id,
                 "alt": "",
                 "name": "",
@@ -50,13 +42,10 @@ export class ReplaceStoryImagesService {
 
             console.log(`${item._uid} updated with new image src: ${newData.Url}`)
 
-            return [{
-                _uid: item._uid,
-                title: "New Block Title",
-                component: 'imageComponent',
-                description: "This is a new block added via API",
-                ...newData,
-            }]
+            return {
+                ...item,
+                item: newData
+            }
         })
         return this;
     }
