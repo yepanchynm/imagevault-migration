@@ -1,4 +1,4 @@
-import { storyblokService } from "../storyblokService";
+import { storyblokService } from "../storyblokService.js";
 
 export async function restoreStoriesFromFile(stories) {
     try {

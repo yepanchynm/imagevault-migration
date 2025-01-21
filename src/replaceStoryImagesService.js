@@ -18,8 +18,6 @@ export class ReplaceStoryImagesService {
                 return
             }
 
-            console.log(item)
-
             const newData = {...item.item?.MediaConversions?.[0]}
 
             const fileName = newData.Name;
@@ -34,7 +32,7 @@ export class ReplaceStoryImagesService {
                 ...newAssetData
             }
 
-            console.log(`${item.Name} updated with new image src: ${newData.Url}`)
+            console.log(`${newData.Name} updated with new image src: ${newAssetData.filename}`)
 
             return [{
                 ...item,

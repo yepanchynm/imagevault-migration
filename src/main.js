@@ -34,7 +34,7 @@ const processImageVaultUrls = async (urls, imageVaultService) => {
     const replacesUrlsFile = getReplacesUrlsFilename();
 
     if (!existsSync(replacesUrlsFile)) {
-        await promises.writeFile(replacesUrlsFile, JSON.stringify([]));
+        await fs.writeFile(replacesUrlsFile, JSON.stringify([]));
     } else {
         const urls = await fs.readFile(replacesUrlsFile, 'utf-8');
         replacesUrls = JSON.parse(urls);
@@ -71,11 +71,16 @@ const processImageVaultUrls = async (urls, imageVaultService) => {
             }
         } catch (error) {
             console.error(`Failed to process URL ${url}:`, error.message);
-            const fallbackUrl = 'https://example.com/default-image.jpg';
+            const fallbackUrl = {
+                "id": 20093191,
+                "filename": "https://a.storyblok.com/f/318103/bb2b33caed/tobii-pontus-walck.jpg",
+                "meta_data": {}
+            };
             replacesUrls.push({ [url.split('/').pop()]: fallbackUrl });
         }
     }
 
+    await fs.writeFile(replacesUrlsFile, JSON.stringify(replacesUrls));
     return replacesUrls;
 };
 
@@ -125,14 +130,14 @@ const bootstrap = async () => {
 
         const restore = false;
 
-        if (restore == true) {
+        if (restore === true) {
             const restoreData = fs.readFile(getStoryFilename('data-before-update'));
             const stories = JSON.parse(restoreData);
             await restoreStoriesFromFile(stories);
             return
         } else {
             const dataBeforeUpdate = await storyblokService.getAllStories();
-            await promises.writeFile(getStoryFilename('data-before-update'), JSON.stringify(dataBeforeUpdate, null, 2));
+            await saveToFile('data-before-update', dataBeforeUpdate);
         }
 
         const storyData = await storyblokService.getStoryBySlug(WORKING_STORY_SLUG);
@@ -140,8 +145,6 @@ const bootstrap = async () => {
 
         const imageVaultUrls = await imageVaultService.getImageVaultUrls(storyData);
         const replacesUrls = await processImageVaultUrls(imageVaultUrls, imageVaultService);
-
-        console.log(replacesUrls)
 
         const components = await storyblokService.getComponentsList();
         if (!components?.components) return;
