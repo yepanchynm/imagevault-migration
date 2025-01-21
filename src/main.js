@@ -8,6 +8,7 @@ import axios from "axios";
 import { ChangeComponentSchemaService } from "./changeComponentSchemaService.js";
 
 const WORKING_STORY_SLUG = 'home';
+const IMAGEVAULT_PLUGIN_NAME = 'image-vault-new';
 
 const getDataFolderPath = () => {
     const __dirname = fileURLToPath(import.meta.url).replace(/\/[^\/]*$/, '');
@@ -34,7 +35,7 @@ const processImageVaultUrls = async (urls, imageVaultService) => {
         const fileName = url.split('/').pop();
 
         const storyblokData = await storyblokService.uploadAsset(buffer, fileName);
-        replacesUrls.push({ [fileName]: storyblokData.filename });
+        replacesUrls.push({ [fileName]: storyblokData });
 
         const imageVaultImageData = await imageVaultService.searchImageData(fileName);
 
@@ -63,7 +64,7 @@ const processImageVaultUrls = async (urls, imageVaultService) => {
 
 const processComponents = async (components) => {
     const componentsWithImageVault = components.filter(item =>
-        Object.values(item.schema).some(field => field?.field_type === "image-vault")
+        Object.values(item.schema).some(field => field?.field_type === IMAGEVAULT_PLUGIN_NAME)
     );
 
     const componentsWithImageVaultNames = componentsWithImageVault.map(comp => comp.name);

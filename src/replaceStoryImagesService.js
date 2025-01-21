@@ -21,9 +21,8 @@ export class ReplaceStoryImagesService {
             console.log(item)
 
             const newData = {...item.item?.MediaConversions?.[0]}
-            const oldSrc = newData.Url;
 
-            const fileName = oldSrc.split('/').pop();
+            const fileName = newData.Name;
             const newAssetData = replacesUrls.find(urlMapping => urlMapping[fileName])?.[fileName];
 
             if (!newAssetData) return
@@ -32,26 +31,13 @@ export class ReplaceStoryImagesService {
             newData.Url = newUrl;
             newData.Html = newData.Html.replace(/src="[^"]*"/, `src="${newUrl}"`);
             newData.StoryblokImage = {
-                "id": newAssetData.id,
-                "alt": "",
-                "name": "",
-                "focus": "",
-                "title": "",
-                "source": "",
-                "filename": newAssetData.filename,
-                "copyright": "",
-                "fieldtype": "asset",
-                "meta_data": newAssetData.meta_data,
-                "is_external_url": false
+                ...newAssetData
             }
 
-            console.log(`${item._uid} updated with new image src: ${newData.Url}`)
+            console.log(`${item.Name} updated with new image src: ${newData.Url}`)
 
             return [{
-                _uid: item._uid,
-                title: "New Block Title",
-                component: 'imageComponent',
-                description: "This is a new block added via API",
+                ...item,
                 ...newData,
             }]
         })
