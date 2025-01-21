@@ -18,10 +18,7 @@ export class ReplaceStoryImagesService {
                 return
             }
 
-            if (!item._uid) {
-                console.error(`There is no uid in component ${item.id}`)
-                return
-            }
+            console.log(item)
 
             const newData = {...item.item?.MediaConversions?.[0]}
             const oldSrc = newData.Url;
@@ -34,7 +31,7 @@ export class ReplaceStoryImagesService {
             const newUrl = newAssetData.filename;
             newData.Url = newUrl;
             newData.Html = newData.Html.replace(/src="[^"]*"/, `src="${newUrl}"`);
-            newData.Image = {
+            newData.StoryblokImage = {
                 "id": newAssetData.id,
                 "alt": "",
                 "name": "",

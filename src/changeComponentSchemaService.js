@@ -14,12 +14,10 @@ export class ChangeComponentSchemaService {
     replace() {
         this.#result = bypassObjectEntries(this.#schema, 'field_type', 'image-vault', (item) => {
             return {
-                type: "bloks",
-                maximum: "1",
-                restrict_components: true,
-                component_whitelist: [
-                    "imageComponent"
-                ],
+                type: item?.type || 'bloks',
+                maximum: item.maximum || "1",
+                restrict_components: item.restrict_components || true,
+                component_whitelist: item.component_whitelist?.length > 0 ? [...item.component_whitelist, 'image-component'] : [],
                 pos: item?.pos || 0,
                 description: item?.description || "",
                 id: item?.id || ""
