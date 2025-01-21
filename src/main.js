@@ -6,6 +6,7 @@ import ImageVaultService from './imageVault/imageVaultService.js';
 import { fileURLToPath } from 'url';
 import axios from "axios";
 import {ChangeComponentSchemaService} from "./changeComponentSchemaService.js";
+import {restoreStoriesFromFile} from './helpers/restore.js'
 
 const getDataFolderPath = () => {
     const __dirname = fileURLToPath(import.meta.url).replace(/\/[^\/]*$/, '');
@@ -22,55 +23,78 @@ const getStoryFilename = (name) => {
     return join(getDataFolderPath(), fileName);
 }
 
-// TODO 
+const getReplacesUrlsFilename = () => {
+    return join(getDataFolderPath(), 'replacesUrls.json');
+}
 
-// Improve filtering imageVault urls (To not lose unique image)
-// Imrpove matching urls
-// Transfer images to correct folder (now uploads to all assets)
-
-const WORKING_STORY_SLUG = 'en/main/demos/brights/demo-product-maksym'
+const WORKING_STORY_SLUG = 'en/main/demos/brights/demo-vlad'
 const WORKING_COMPONENT_NAME = 'imagevaultMigration_copy'
 
 async function bootstrap() {
     try {
         const imageVaultService = new ImageVaultService();
 
+        const restore = false;
+        if (restore == true) {
+            const restoreData = fs.readFile(getStoryFilename('data-before-update'));
+            const stories = JSON.parse(restoreData);
+            await restoreStoriesFromFile(stories);
+
+            return
+        } else {
+            const dataBeforeUpdate = await storyblokService.getAllStories();
+            await promises.writeFile(getStoryFilename('data-before-update'), JSON.stringify(dataBeforeUpdate, null, 2));
+        }
+
         const data = await storyblokService.getStoryBySlug(WORKING_STORY_SLUG)
-        await promises.writeFile(getStoryFilename('demo-product-maksym'), JSON.stringify(data, null, 2));
-        console.log('demo-product-maksym file created')
+        await promises.writeFile(getStoryFilename('demo-vlad'), JSON.stringify(data, null, 2));
+        console.log('demo-vlad file created')
 
         const urls = await imageVaultService.getImageVaultUrls(data)
 
-        const replacesUrls = []
+        let replacesUrls = [];
+        const replacesUrlsFile = getReplacesUrlsFilename();
+        
+        if (!existsSync(replacesUrlsFile)) {
+            await promises.writeFile(replacesUrlsFile, JSON.stringify([]));
+        }
 
         for (const url of urls) {
-            const imageResponse = await axios.get(url, { responseType: 'arraybuffer' })
-            const buffer = Buffer.from(imageResponse.data, 'binary');
-            const fileName = url.split('/').pop();
-            const storyblokData = await storyblokService.uploadAsset(buffer, fileName)
-            replacesUrls.push({[url.split('/').pop()] : storyblokData.filename})
+            try {
+                const imageResponse = await axios.get(url, { responseType: 'arraybuffer' })
+                const buffer = Buffer.from(imageResponse.data, 'binary');
+                const fileName = url.split('/').pop();
+                const storyblokData = await storyblokService.uploadAsset(buffer, fileName)
+                replacesUrls.push({[url.split('/').pop()] : storyblokData.filename})
 
-            const imageVaultImageData = await imageVaultService.searchImageData(storyblokData.filename.split('/').pop())
-            if (imageVaultImageData.categories && imageVaultImageData.categories.length > 0) {
-                let storyblockTags = await storyblokService.getTags()
-                let assetTags = []
-                for (const category of imageVaultImageData.categories) {
-                    let tag = storyblockTags
-                        ? storyblockTags.find(tag => tag.name.toLowerCase() === category.name.toLowerCase())
-                        : undefined
+                const imageVaultImageData = await imageVaultService.searchImageData(storyblokData.filename.split('/').pop())
+                if (imageVaultImageData.categories && imageVaultImageData.categories.length > 0) {
+                    let storyblockTags = await storyblokService.getTags()
+                    let assetTags = []
+                    for (const category of imageVaultImageData.categories) {
+                        let tag = storyblockTags
+                            ? storyblockTags.find(tag => tag.name.toLowerCase() === category.name.toLowerCase())
+                            : undefined
 
-                    if (!tag) {
-                        const createdTag = await storyblokService.createTag(category.name);
-                        storyblockTags = await storyblokService.getTags();
-                        tag = createdTag.internal_tag
+                        if (!tag) {
+                            const createdTag = await storyblokService.createTag(category.name);
+                            storyblockTags = await storyblokService.getTags();
+                            tag = createdTag.internal_tag
+                        }
+
+                        assetTags.push(tag.id)
                     }
-                    
-                    assetTags.push(tag.id)
-                }
 
-                await storyblokService.updateAsset(storyblokData.id, { asset : { internal_tag_ids: assetTags } });
+                    await storyblokService.updateAsset(storyblokData.id, { asset : { internal_tag_ids: assetTags } });
+                }
+            } catch (error) {
+                console.error(`Failed to process URL ${url}:`, error.message);
+                const fallbackUrl = 'https://example.com/default-image.jpg';
+                replacesUrls.push({ [url.split('/').pop()]: fallbackUrl });
             }
         }
+
+        await promises.writeFile(getReplacesUrlsFilename(), JSON.stringify(replacesUrls, null, 2));
 
         const components = await storyblokService.getComponentsList()
 
@@ -152,18 +176,18 @@ async function bootstrap() {
         await promises.writeFile(getStoryFilename('demo-product-maksym-replaced'), JSON.stringify(newData, null, 2));
         console.log('demo-product-maksym-replaced file created')
 
-        if (newData.id) {
-            const response = await storyblokService.updateStory(newData.id, newData, {
-                force_update: 1,
-                publish: 1,
-            })
+        // if (newData.id) {
+        //     const response = await storyblokService.updateStory(newData.id, newData, {
+        //         force_update: 1,
+        //         publish: 1,
+        //     })
 
-            if (response.status === 200) {
-                console.log(`${newData.id} updated`)
-            } else {
-                console.log(`Failed to update story ID ${newData.id}`)
-            }
-        }
+        //     if (response.status === 200) {
+        //         console.log(`${newData.id} updated`)
+        //     } else {
+        //         console.log(`Failed to update story ID ${newData.id}`)
+        //     }
+        // }
     } catch (err) {
         console.error(err);
     }
