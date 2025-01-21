@@ -6,6 +6,7 @@ import ImageVaultService from './imageVault/imageVaultService.js';
 import { fileURLToPath } from 'url';
 import axios from "axios";
 import { ChangeComponentSchemaService } from "./changeComponentSchemaService.js";
+import { restoreStoriesFromFile } from './helpers/restore.js'
 
 const WORKING_STORY_SLUG = 'home';
 const IMAGEVAULT_PLUGIN_NAME = 'image-vault-new';
@@ -21,41 +22,57 @@ const getDataFolderPath = () => {
 
 const getStoryFilename = (name) => join(getDataFolderPath(), `${name}.stories.json`);
 
+const getReplacesUrlsFilename = () => join(getDataFolderPath(), 'replacesUrls.json');
+
 const saveToFile = async (filename, data) => {
     await fs.writeFile(getStoryFilename(filename), JSON.stringify(data, null, 2));
     console.log(`${filename} file created`);
 };
 
 const processImageVaultUrls = async (urls, imageVaultService) => {
-    const replacesUrls = [];
+    let replacesUrls = [];
+    const replacesUrlsFile = getReplacesUrlsFilename();
+
+    if (!existsSync(replacesUrlsFile)) {
+        await promises.writeFile(replacesUrlsFile, JSON.stringify([]));
+    } else {
+        const urls = await fs.readFile(replacesUrlsFile, 'utf-8');
+        replacesUrls = JSON.parse(urls);
+    }
 
     for (const url of urls) {
-        const imageResponse = await axios.get(url, { responseType: 'arraybuffer' });
-        const buffer = Buffer.from(imageResponse.data, 'binary');
-        const fileName = url.split('/').pop();
+        try {
+            const imageResponse = await axios.get(url, { responseType: 'arraybuffer' });
+            const buffer = Buffer.from(imageResponse.data, 'binary');
+            const fileName = url.split('/').pop();
 
-        const storyblokData = await storyblokService.uploadAsset(buffer, fileName);
-        replacesUrls.push({ [fileName]: storyblokData });
+            const storyblokData = await storyblokService.uploadAsset(buffer, fileName);
+            replacesUrls.push({ [fileName]: storyblokData });
 
-        const imageVaultImageData = await imageVaultService.searchImageData(fileName);
+            const imageVaultImageData = await imageVaultService.searchImageData(fileName);
 
-        if (imageVaultImageData?.categories?.length > 0) {
-            let storyblokTags = await storyblokService.getTags();
-            const assetTags = [];
+            if (imageVaultImageData?.categories?.length > 0) {
+                let storyblokTags = await storyblokService.getTags();
+                const assetTags = [];
 
-            for (const category of imageVaultImageData.categories) {
-                let tag = storyblokTags?.find(tag => tag.name.toLowerCase() === category.name.toLowerCase());
+                for (const category of imageVaultImageData.categories) {
+                    let tag = storyblokTags?.find(tag => tag.name.toLowerCase() === category.name.toLowerCase());
 
-                if (!tag) {
-                    const createdTag = await storyblokService.createTag(category.name);
-                    storyblokTags = await storyblokService.getTags();
-                    tag = createdTag.internal_tag;
+                    if (!tag) {
+                        const createdTag = await storyblokService.createTag(category.name);
+                        storyblokTags = await storyblokService.getTags();
+                        tag = createdTag.internal_tag;
+                    }
+
+                    assetTags.push(tag.id);
                 }
 
-                assetTags.push(tag.id);
+                await storyblokService.updateAsset(storyblokData.id, { asset: { internal_tag_ids: assetTags } });
             }
-
-            await storyblokService.updateAsset(storyblokData.id, { asset: { internal_tag_ids: assetTags } });
+        } catch (error) {
+            console.error(`Failed to process URL ${url}:`, error.message);
+            const fallbackUrl = 'https://example.com/default-image.jpg';
+            replacesUrls.push({ [url.split('/').pop()]: fallbackUrl });
         }
     }
 
@@ -105,6 +122,18 @@ const updateImageVaultComponents = async (componentsWithImageVault) => {
 const bootstrap = async () => {
     try {
         const imageVaultService = new ImageVaultService();
+
+        const restore = false;
+
+        if (restore == true) {
+            const restoreData = fs.readFile(getStoryFilename('data-before-update'));
+            const stories = JSON.parse(restoreData);
+            await restoreStoriesFromFile(stories);
+            return
+        } else {
+            const dataBeforeUpdate = await storyblokService.getAllStories();
+            await promises.writeFile(getStoryFilename('data-before-update'), JSON.stringify(dataBeforeUpdate, null, 2));
+        }
 
         const storyData = await storyblokService.getStoryBySlug(WORKING_STORY_SLUG);
         await saveToFile(WORKING_STORY_SLUG, storyData);
