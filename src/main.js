@@ -9,7 +9,8 @@ import { ChangeComponentSchemaService } from "./changeComponentSchemaService.js"
 import { restoreStoriesFromFile } from './helpers/restore.js'
 
 const WORKING_STORY_SLUG = 'home';
-const IMAGEVAULT_PLUGIN_NAME = 'image-vault-new';
+export const IMAGEVAULT_PLUGIN_NAME = 'image-vault-new';
+export const NEW_PLUGIN_NAME = 'image-plugin';
 
 const getDataFolderPath = () => {
     const __dirname = fileURLToPath(import.meta.url).replace(/\/[^\/]*$/, '');
@@ -114,12 +115,12 @@ const updateImageVaultComponents = async (componentsWithImageVault) => {
 
         await saveToFile(`${component.name}-replaced`, componentData);
 
-        // const updateResponse = await storyblokService.updateComponentById(component.id, componentData);
-        // if (updateResponse.status === 200) {
-        //     console.log(`${component.id} (${component.name}) updated successfully`);
-        // } else {
-        //     console.log(`Failed to update component ID ${component.id} (${component.name})`);
-        // }
+        const updateResponse = await storyblokService.updateComponentById(component.id, componentData);
+        if (updateResponse.status === 200) {
+            console.log(`${component.id} (${component.name}) updated successfully`);
+        } else {
+            console.log(`Failed to update component ID ${component.id} (${component.name})`);
+        }
     }
 };
 
@@ -168,19 +169,18 @@ const bootstrap = async () => {
 
         await saveToFile(`${WORKING_STORY_SLUG}-replaced`, updatedStoryData);
 
-        // if (updatedStoryData.id) {
-        //     const response = await storyblokService.updateStory(updatedStoryData.id, updatedStoryData, {
-        //         force_update: 1,
-        //         publish: 1,
-        //     });
-        //
-        //     if (response.status === 200) {
-        //         console.log(`Story ${updatedStoryData.id} updated successfully`);
-        //     } else {
-        //         console.log(`Failed to update story ID ${updatedStoryData.id}`);
-        //     }
-        // }
+        if (updatedStoryData.id) {
+            const response = await storyblokService.updateStory(updatedStoryData.id, updatedStoryData, {
+                force_update: 1,
+                publish: 1,
+            });
 
+            if (response.status === 200) {
+                console.log(`Story ${updatedStoryData.id} updated successfully`);
+            } else {
+                console.log(`Failed to update story ID ${updatedStoryData.id}`);
+            }
+        }
     } catch (err) {
         console.error('Error in bootstrap:', err);
     }

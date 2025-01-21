@@ -34,10 +34,9 @@ export class ReplaceStoryImagesService {
 
             console.log(`${newData.Name} updated with new image src: ${newAssetData.filename}`)
 
-            return [{
-                ...item,
-                ...newData,
-            }]
+            return {
+                item: newData
+            }
         })
         return this;
     }

@@ -1,4 +1,5 @@
 import {bypassObjectEntries} from "./helpers/bypassObjectEntries.js";
+import {IMAGEVAULT_PLUGIN_NAME, NEW_PLUGIN_NAME} from "./main.js";
 
 export class ChangeComponentSchemaService {
     #schema
@@ -12,15 +13,10 @@ export class ChangeComponentSchemaService {
     }
 
     replace() {
-        this.#result = bypassObjectEntries(this.#schema, 'field_type', 'image-vault', (item) => {
+        this.#result = bypassObjectEntries(this.#schema, 'field_type', IMAGEVAULT_PLUGIN_NAME, (item) => {
             return {
-                type: item?.type || 'bloks',
-                maximum: item.maximum || "1",
-                restrict_components: item.restrict_components || true,
-                component_whitelist: item.component_whitelist?.length > 0 ? [...item.component_whitelist, 'image-component'] : [],
-                pos: item?.pos || 0,
-                description: item?.description || "",
-                id: item?.id || ""
+                ...item,
+                field_type: NEW_PLUGIN_NAME
             }
         })
         return this
