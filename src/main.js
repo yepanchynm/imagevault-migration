@@ -50,6 +50,8 @@ const processImageVaultUrls = async (urls, imageVaultService) => {
             const storyblokData = await storyblokService.uploadAsset(buffer, fileName);
             replacesUrls.push({ [fileName]: storyblokData });
 
+            console.log('[UPLOAD ASSET]', storyblokData)
+
             const imageVaultImageData = await imageVaultService.searchImageData(fileName);
 
             if (imageVaultImageData?.categories?.length > 0) {
@@ -68,16 +70,17 @@ const processImageVaultUrls = async (urls, imageVaultService) => {
                     assetTags.push(tag.id);
                 }
 
-                await storyblokService.updateAsset(storyblokData.id, { asset: { internal_tag_ids: assetTags } });
+                const data = await storyblokService.updateAsset(storyblokData.id, { asset: { internal_tag_ids: assetTags } });
+                console.log('[UPDATE ASSET]', data)
             }
         } catch (error) {
             console.error(`Failed to process URL ${url}:`, error.message);
-            const fallbackUrl = {
+            const fallback = {
                 "id": 20093191,
                 "filename": "https://a.storyblok.com/f/318103/bb2b33caed/tobii-pontus-walck.jpg",
                 "meta_data": {}
             };
-            replacesUrls.push({ [url.split('/').pop()]: fallbackUrl });
+            replacesUrls.push({ [url.split('/').pop()]: fallback });
         }
     }
 

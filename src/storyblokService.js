@@ -88,7 +88,6 @@ class StoryblokService {
         });
 
         const publicUrl = presignData.public_url;
-
         const fixedUrl = publicUrl.replace('s3.amazonaws.com/', '');
     
         return {
