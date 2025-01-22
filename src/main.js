@@ -47,6 +47,8 @@ const processImageVaultUrls = async (urls, imageVaultService) => {
             const buffer = Buffer.from(imageResponse.data, 'binary');
             const fileName = url.split('/').pop();
 
+            if (replacesUrls.some(item => fileName in item)) { continue }
+
             const storyblokData = await storyblokService.uploadAsset(buffer, fileName);
             replacesUrls.push({ [fileName]: storyblokData });
 
