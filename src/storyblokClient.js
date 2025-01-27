@@ -8,6 +8,10 @@ if (typeof token === "undefined") throw new Error("Storybloktoken missing");
 if (typeof oauthToken === "undefined") throw new Error("oauthToken Storybloktoken missing");
 if (typeof spaceId === "undefined") throw new Error("spaceId missing");
 
+const delay = Math.floor(1000 / 6) + 1;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const getInstance = axios.create({
     baseURL: "https://api.storyblok.com/v2/cdn",
     headers: {
@@ -27,5 +31,13 @@ const updateInstance = axios.create({
         "Authorization": oauthToken
     },
 });
+
+const delayHandler = async (response) => {
+    await sleep(delay);
+    return response;
+}
+
+getInstance.interceptors.response.use(delayHandler)
+updateInstance.interceptors.response.use(delayHandler)
 
 export { getInstance, updateInstance };

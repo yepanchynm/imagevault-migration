@@ -69,7 +69,8 @@ const processImageVaultUrls = async (urls, imageVaultService) => {
                         tag = createdTag.internal_tag;
                     }
 
-                    assetTags.push(tag.id);
+                    if (tag?.id)
+                        assetTags.push(tag.id);
                 }
 
                 const data = await storyblokService.updateAsset(storyblokData.id, { asset: { internal_tag_ids: assetTags } });

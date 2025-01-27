@@ -20,10 +20,13 @@ export class ReplaceStoryImagesService {
 
             const newData = {...item}
 
-            const fileName = newData.item?.MediaConversions?.[0]?.Name;
+            const fileName = newData.item?.MediaConversions?.[0]?.Url.split('/').pop();
             const newAssetData = replacesUrls.find(urlMapping => urlMapping[fileName])?.[fileName];
 
-            if (!newAssetData) return
+            if (!newAssetData) {
+                console.error(`There is no ${fileName} in replacesUrls`)
+                return
+            }
 
             newData.item.StoryblokImage = {
                 ...newAssetData
