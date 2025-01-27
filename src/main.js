@@ -30,7 +30,7 @@ const saveToFile = async (filename, data) => {
     console.log(`${filename} file created`);
 };
 
-const processImageVaultUrls = async (urls, imageVaultService) => {
+const processImageVaultUrls = async (toReplace, imageVaultService) => {
     let replacesUrls = [];
     const replacesUrlsFile = getReplacesUrlsFilename();
 
@@ -41,16 +41,18 @@ const processImageVaultUrls = async (urls, imageVaultService) => {
         replacesUrls = JSON.parse(urls);
     }
 
-    for (const url of urls) {
+    for (const replace of toReplace) {
+        const id = Object.keys(replace)[0];
+        const url = replace[id]; 
         try {
             const imageResponse = await axios.get(url, { responseType: 'arraybuffer' });
             const buffer = Buffer.from(imageResponse.data, 'binary');
             const fileName = url.split('/').pop();
 
-            if (replacesUrls.some(item => fileName in item)) { continue }
+            if (replacesUrls.some(item => id in item)) { continue }
 
             const storyblokData = await storyblokService.uploadAsset(buffer, fileName);
-            replacesUrls.push({ [fileName]: storyblokData });
+            replacesUrls.push({ [id]: storyblokData });
 
             console.log('[UPLOAD ASSET]', storyblokData)
 
@@ -83,7 +85,7 @@ const processImageVaultUrls = async (urls, imageVaultService) => {
                 "filename": "https://a.storyblok.com/f/318103/bb2b33caed/tobii-pontus-walck.jpg",
                 "meta_data": {}
             };
-            replacesUrls.push({ [url.split('/').pop()]: fallback });
+            replacesUrls.push({ 20093191: fallback });
         }
     }
 
@@ -150,8 +152,8 @@ const bootstrap = async () => {
         const storyData = await storyblokService.getStoryBySlug(WORKING_STORY_SLUG);
         await saveToFile(WORKING_STORY_SLUG, storyData);
 
-        const imageVaultUrls = await imageVaultService.getImageVaultUrls(storyData);
-        const replacesUrls = await processImageVaultUrls(imageVaultUrls, imageVaultService);
+        const toReplace = await imageVaultService.getImageVaultUrls(storyData);
+        const replacesUrls = await processImageVaultUrls(toReplace, imageVaultService);
 
         const components = await storyblokService.getComponentsList();
         if (!components?.components) return;
