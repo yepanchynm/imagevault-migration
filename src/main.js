@@ -70,12 +70,11 @@ const processImageVaultUrls = async (toReplace, imageVaultService) => {
             for (const category of categories) {
                 let tag = storyblokTags?.find(tag => tag.name.toLowerCase() === category.name.toLowerCase());
                 if (!tag) {
-                    const createdTag = await storyblokService.createTag(category.name);
+                    await storyblokService.createTag(category.name);
                     storyblokTags = await storyblokService.getTags();
-                    tag = createdTag.internal_tag;
+                    tag = storyblokTags?.find(tag => tag.name.toLowerCase() === category.name.toLowerCase());
                 }
-                if (tag?.id)
-                    assetTags.push(tag.id);
+                if (tag?.id) assetTags.push(tag.id);
             }
 
             await storyblokService.updateAsset(storyblokData.id, { asset: { 
