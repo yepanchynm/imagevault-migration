@@ -30,9 +30,7 @@ class ImageVaultService {
     async getImageVaultUrls(stories) {
         const storiesArray = Array.isArray(stories) ? stories : [stories];
 
-        return this._filterUniqueUrls(storiesArray.flatMap((story) =>
-            this._extractImageVaultUrls(story)
-        ));
+        return storiesArray.flatMap((story) => this._extractImageVaultUrls(story));
     }
 
     async _getAuthToken() {
@@ -56,40 +54,42 @@ class ImageVaultService {
      */
     _extractImageVaultUrls(content) {
         const urls = [];
-
+        const addedIds = new Set();
+    
         function recursiveExtract(data) {
             if (Array.isArray(data)) {
                 data.forEach(recursiveExtract);
             } else if (typeof data === "object" && data !== null) {
                 if (data.plugin === "image-vault" && data.item?.MediaConversions) {
                     data.item.MediaConversions.forEach((media) => {
-                        if (media.Url.startsWith(imageVaultUrl)) {
-                            urls.push(media.Url);
+                        if (media.Url.startsWith(imageVaultUrl) && !addedIds.has(media.Id)) {
+                            urls.push({ [media.Id]: media.Url });
+                            addedIds.add(media.Id);
                         }
                     });
                 }
-
+    
                 for (const key in data) {
                     recursiveExtract(data[key]);
                 }
             }
         }
-
+    
         recursiveExtract(content);
         return urls;
     }
 
-    _filterUniqueUrls(urls) {
-        const seenFiles = new Set();
-        return urls.filter((url) => {
-            const fileName = url.substring(url.lastIndexOf('/') + 1);
-            if (seenFiles.has(fileName)) {
-                return false;
-            }
-            seenFiles.add(fileName);
-            return true;
-        });
-    }  
+    // _filterUniqueUrls(urls) {
+    //     const seenFiles = new Set();
+    //     return urls.filter((url) => {
+    //         const fileName = url.substring(url.lastIndexOf('/') + 1);
+    //         if (seenFiles.has(fileName)) {
+    //             return false;
+    //         }
+    //         seenFiles.add(fileName);
+    //         return true;
+    //     });
+    // }  
 }
 
 export default ImageVaultService;
