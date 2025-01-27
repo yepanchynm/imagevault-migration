@@ -8,7 +8,7 @@ import axios from "axios";
 import { ChangeComponentSchemaService } from "./changeComponentSchemaService.js";
 import { restoreStoriesFromFile } from './helpers/restore.js'
 
-const WORKING_STORY_SLUG = 'home';
+const WORKING_STORY_SLUG = 'vlad-home';
 export const IMAGEVAULT_PLUGIN_NAME = 'image-vault-new';
 export const NEW_PLUGIN_NAME = 'image-plugin';
 
@@ -56,28 +56,39 @@ const processImageVaultUrls = async (toReplace, imageVaultService) => {
 
             console.log('[UPLOAD ASSET]', storyblokData)
 
-            const imageVaultImageData = await imageVaultService.searchImageData(fileName);
+            const imageVaultImageData = await imageVaultService.searchImageData(id);
 
-            if (imageVaultImageData?.categories?.length > 0) {
-                let storyblokTags = await storyblokService.getTags();
-                const assetTags = [];
+            const categories = imageVaultImageData?.categories?.length > 0 
+                ? imageVaultImageData.categories
+                : [{ name: 'No category' }]
 
-                for (const category of imageVaultImageData.categories) {
-                    let tag = storyblokTags?.find(tag => tag.name.toLowerCase() === category.name.toLowerCase());
+            let storyblokTags = await storyblokService.getTags();
+            const assetTags = [];
+            
+            const altText = imageVaultImageData.metadata.find(item => item.definitionId === 1082);
 
-                    if (!tag) {
-                        const createdTag = await storyblokService.createTag(category.name);
-                        storyblokTags = await storyblokService.getTags();
-                        tag = createdTag.internal_tag;
-                    }
-
-                    if (tag?.id)
-                        assetTags.push(tag.id);
+            for (const category of categories) {
+                let tag = storyblokTags?.find(tag => tag.name.toLowerCase() === category.name.toLowerCase());
+                if (!tag) {
+                    const createdTag = await storyblokService.createTag(category.name);
+                    storyblokTags = await storyblokService.getTags();
+                    tag = createdTag.internal_tag;
                 }
-
-                const data = await storyblokService.updateAsset(storyblokData.id, { asset: { internal_tag_ids: assetTags } });
-                console.log('[UPDATE ASSET]', data)
+                if (tag?.id)
+                    assetTags.push(tag.id);
             }
+
+            await storyblokService.updateAsset(storyblokData.id, { asset: { 
+                internal_tag_ids: assetTags,
+                title: altText?.value,
+                alt: altText?.value
+            } });
+            console.log('[UPDATE ASSET]', storyblokData.id, { asset: { 
+                internal_tag_ids: assetTags,
+                title: altText?.value,
+                alt: altText?.value
+            } })
+
         } catch (error) {
             console.error(`Failed to process URL ${url}:`, error.message);
             const fallback = {
@@ -155,22 +166,22 @@ const bootstrap = async () => {
         const toReplace = await imageVaultService.getImageVaultUrls(storyData);
         const replacesUrls = await processImageVaultUrls(toReplace, imageVaultService);
 
-        const components = await storyblokService.getComponentsList();
-        if (!components?.components) return;
+        // const components = await storyblokService.getComponentsList();
+        // if (!components?.components) return;
 
-        await saveToFile('components', components);
+        // await saveToFile('components', components);
 
-        const {
-            componentsWithImageVault,
-            componentsWithImageVaultNames,
-            componentsWithWhitelistedImageVault
-        } = await processComponents(components.components);
+        // const {
+        //     componentsWithImageVault,
+        //     componentsWithImageVaultNames,
+        //     componentsWithWhitelistedImageVault
+        // } = await processComponents(components.components);
 
-        await saveToFile('components-with-imagevault', componentsWithImageVault);
-        await saveToFile('components-with-imagevault-names', componentsWithImageVaultNames);
-        await saveToFile('components-which-has-whitelisted-ImageVault', componentsWithWhitelistedImageVault);
+        // await saveToFile('components-with-imagevault', componentsWithImageVault);
+        // await saveToFile('components-with-imagevault-names', componentsWithImageVaultNames);
+        // await saveToFile('components-which-has-whitelisted-ImageVault', componentsWithWhitelistedImageVault);
 
-        await updateImageVaultComponents(componentsWithImageVault);
+        // await updateImageVaultComponents(componentsWithImageVault);
 
         const replaceStoryService = new ReplaceStoryImagesService(storyData);
         const updatedStoryData = replaceStoryService.replace(replacesUrls).get();
@@ -178,16 +189,16 @@ const bootstrap = async () => {
         await saveToFile(`${WORKING_STORY_SLUG}-replaced`, updatedStoryData);
 
         if (updatedStoryData.id) {
-            const response = await storyblokService.updateStory(updatedStoryData.id, updatedStoryData, {
-                force_update: 1,
-                publish: 1,
-            });
+            // const response = await storyblokService.updateStory(updatedStoryData.id, updatedStoryData, {
+            //     force_update: 1,
+            //     publish: 1,
+            // });
 
-            if (response.status === 200) {
-                console.log(`Story ${updatedStoryData.id} updated successfully`);
-            } else {
-                console.log(`Failed to update story ID ${updatedStoryData.id}`);
-            }
+            // if (response.status === 200) {
+            //     console.log(`Story ${updatedStoryData.id} updated successfully`);
+            // } else {
+            //     console.log(`Failed to update story ID ${updatedStoryData.id}`);
+            // }
         }
     } catch (err) {
         console.error('Error in bootstrap:', err);
