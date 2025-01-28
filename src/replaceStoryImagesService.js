@@ -13,18 +13,17 @@ export class ReplaceStoryImagesService {
 
     replace(replacesUrls) {
         this.#result = bypassObjectEntries(this.#storyData, 'plugin', 'image-vault', (item) => {
-            if (!item.item) {
+            if (!item.item?.Id) {
                 console.error(`There is no picture`)
                 return
             }
 
             const newData = {...item}
-
-            const fileName = newData.item?.MediaConversions?.[0]?.Url.split('/').pop();
-            const newAssetData = replacesUrls.find(urlMapping => urlMapping[fileName])?.[fileName];
+            const id = newData?.item?.Id;
+            const newAssetData = replacesUrls.find(urlMapping => urlMapping[id])?.[id];
 
             if (!newAssetData) {
-                console.error(`There is no ${fileName} in replacesUrls`)
+                console.error(`There is no ${id} in replacesUrls`)
                 return
             }
 
@@ -32,7 +31,7 @@ export class ReplaceStoryImagesService {
                 ...newAssetData
             }
 
-            console.log(`${fileName} updated with new image src: ${newAssetData.filename}`)
+            console.log(`[ID ${id}] ${newData.item?.MediaConversions?.[0].Url} replaced with: ${newAssetData.filename}`)
 
             return {
                 ...newData
