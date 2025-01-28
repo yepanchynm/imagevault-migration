@@ -8,9 +8,10 @@ import axios from "axios";
 import { ChangeComponentSchemaService } from "./changeComponentSchemaService.js";
 import { restoreStoriesFromFile } from './helpers/restore.js'
 
-const WORKING_STORY_SLUG = 'vlad-home';
+// const WORKING_STORY_SLUG = 'vlad-home';
 export const IMAGEVAULT_PLUGIN_NAME = 'image-vault-new';
 export const NEW_PLUGIN_NAME = 'image-plugin';
+const DO_NOT_TOCH_STORY_WITH_ID = [182380428, 181860514]
 
 const getDataFolderPath = () => {
     const __dirname = fileURLToPath(import.meta.url).replace(/\/[^\/]*$/, '');
@@ -154,51 +155,61 @@ const bootstrap = async () => {
             const stories = JSON.parse(restoreData);
             await restoreStoriesFromFile(stories);
             return
-        } else {
-            const dataBeforeUpdate = await storyblokService.getAllStories();
-            await saveToFile('data-before-update', dataBeforeUpdate);
+        } 
+        
+        const dataBeforeUpdate = await storyblokService.getAllStories();
+        await saveToFile('data-before-update', dataBeforeUpdate);
+
+        for (const storyData of dataBeforeUpdate) {
+            if (storyData.id in DO_NOT_TOCH_STORY_WITH_ID) continue
+            try {
+                const WORKING_STORY_ID = `${storyData.id}`;
+                await saveToFile(WORKING_STORY_ID, storyData);
+
+                const toReplace = await imageVaultService.getImageVaultUrls(storyData);
+                const replacesUrls = await processImageVaultUrls(toReplace, imageVaultService);
+        
+                // const components = await storyblokService.getComponentsList();
+                // if (!components?.components) return;
+        
+                // await saveToFile('components', components);
+        
+                // const {
+                //     componentsWithImageVault,
+                //     componentsWithImageVaultNames,
+                //     componentsWithWhitelistedImageVault
+                // } = await processComponents(components.components);
+        
+                // await saveToFile('components-with-imagevault', componentsWithImageVault);
+                // await saveToFile('components-with-imagevault-names', componentsWithImageVaultNames);
+                // await saveToFile('components-which-has-whitelisted-ImageVault', componentsWithWhitelistedImageVault);
+        
+                // await updateImageVaultComponents(componentsWithImageVault);
+        
+                const replaceStoryService = new ReplaceStoryImagesService(storyData);
+                const updatedStoryData = replaceStoryService.replace(replacesUrls).get();
+        
+                await saveToFile(`${WORKING_STORY_ID}-replaced`, updatedStoryData);
+        
+                if (updatedStoryData.id) {
+                    // const response = await storyblokService.updateStory(updatedStoryData.id, updatedStoryData, {
+                    //     force_update: 1,
+                    //     publish: 1,
+                    // });
+        
+                    // if (response.status === 200) {
+                    //     console.log(`Story ${updatedStoryData.id} updated successfully`);
+                    // } else {
+                    //     console.log(`Failed to update story ID ${updatedStoryData.id}`);
+                    // }
+                }
+            } catch (e) {
+                console.error(`Can not update story with id: ${storyData.id}`);
+                console.error(`Error: ${error.message}`);
+            }
         }
 
-        const storyData = await storyblokService.getStoryBySlug(WORKING_STORY_SLUG);
-        await saveToFile(WORKING_STORY_SLUG, storyData);
-
-        const toReplace = await imageVaultService.getImageVaultUrls(storyData);
-        const replacesUrls = await processImageVaultUrls(toReplace, imageVaultService);
-
-        // const components = await storyblokService.getComponentsList();
-        // if (!components?.components) return;
-
-        // await saveToFile('components', components);
-
-        // const {
-        //     componentsWithImageVault,
-        //     componentsWithImageVaultNames,
-        //     componentsWithWhitelistedImageVault
-        // } = await processComponents(components.components);
-
-        // await saveToFile('components-with-imagevault', componentsWithImageVault);
-        // await saveToFile('components-with-imagevault-names', componentsWithImageVaultNames);
-        // await saveToFile('components-which-has-whitelisted-ImageVault', componentsWithWhitelistedImageVault);
-
-        // await updateImageVaultComponents(componentsWithImageVault);
-
-        const replaceStoryService = new ReplaceStoryImagesService(storyData);
-        const updatedStoryData = replaceStoryService.replace(replacesUrls).get();
-
-        await saveToFile(`${WORKING_STORY_SLUG}-replaced`, updatedStoryData);
-
-        if (updatedStoryData.id) {
-            // const response = await storyblokService.updateStory(updatedStoryData.id, updatedStoryData, {
-            //     force_update: 1,
-            //     publish: 1,
-            // });
-
-            // if (response.status === 200) {
-            //     console.log(`Story ${updatedStoryData.id} updated successfully`);
-            // } else {
-            //     console.log(`Failed to update story ID ${updatedStoryData.id}`);
-            // }
-        }
+        // const storyData = await storyblokService.getStoryBySlug(WORKING_STORY_SLUG);
     } catch (err) {
         console.error('Error in bootstrap:', err);
     }
