@@ -15,7 +15,7 @@ export class ReplaceStoryImagesService {
         this.#result = bypassObjectEntries(this.#storyData, 'plugin', 'image-vault', (item) => {
             if (!item.item?.Id) {
                 console.error(`There is no picture`)
-                return
+                return item
             }
 
             const newData = {...item}
@@ -24,7 +24,7 @@ export class ReplaceStoryImagesService {
 
             if (!newAssetData) {
                 console.error(`There is no ${id} in replacesUrls`)
-                return
+                return item
             }
 
             newData.item.StoryblokImage = {
