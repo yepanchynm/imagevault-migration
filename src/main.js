@@ -8,10 +8,16 @@ import axios from "axios";
 import { ChangeComponentSchemaService } from "./changeComponentSchemaService.js";
 import { restoreStoriesFromFile } from './helpers/restore.js'
 
-const WORKING_STORY_SLUGS = ['home', 'home-1'];
-const COMPONENTS_NAMES_WHITELIST = ['block-with-only-imagevault']
-export const IMAGEVAULT_PLUGIN_NAME = 'image-vault-new';
-export const NEW_PLUGIN_NAME = 'image-plugin';
+const WORKING_STORY_SLUGS = [
+    'en/main/demos/brights/migration-test-page',
+    'zh/main/demos/brights/migration-test-page',
+    'ja/main/demos/brights/migration-test-page',
+    'en/investor/demos/brights/migration-test-page',
+    'zh/main/demos/brights/migration-test-page',
+];
+const COMPONENTS_NAMES_WHITELIST = ['imagevaultMigration']
+export const IMAGEVAULT_PLUGIN_NAME = 'image-vault';
+export const NEW_PLUGIN_NAME = 'storyblok-image-selector';
 
 const getDataFolderPath = () => {
     const __dirname = fileURLToPath(import.meta.url).replace(/\/[^\/]*$/, '');
@@ -147,7 +153,8 @@ const updateStory = async (storySlug) => {
     const imageVaultService = new ImageVaultService();
 
     const storyData = await storyblokService.getStoryBySlug(storySlug);
-    await saveToFile(storySlug, storyData);
+    const filenamePrefix=  storySlug.replace(/\//g, '-')
+    await saveToFile(filenamePrefix, storyData);
 
     const toReplace = await imageVaultService.getImageVaultUrls(storyData);
     const replacesUrls = await processImageVaultUrls(toReplace, imageVaultService);
@@ -155,7 +162,7 @@ const updateStory = async (storySlug) => {
     const replaceStoryService = new ReplaceStoryImagesService(storyData);
     const updatedStoryData = replaceStoryService.replace(replacesUrls).get();
 
-    await saveToFile(`${storySlug}-replaced`, updatedStoryData);
+    await saveToFile(`${filenamePrefix}-replaced`, updatedStoryData);
 
     if (updatedStoryData.id) {
         const response = await storyblokService.updateStory(updatedStoryData.id, updatedStoryData, {
@@ -214,7 +221,7 @@ const bootstrap = async () => {
 
         const componentsToUpdate = getComponentsToUpdate(componentsWithImageVault)
         await updateImageVaultComponents(componentsToUpdate);
-        await saveToFile('updated-components-data', componentsToUpdate);
+        await saveToFile('components-to-update', componentsToUpdate);
     } catch (err) {
         console.error('Error in bootstrap:', err);
     }

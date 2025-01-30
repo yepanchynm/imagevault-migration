@@ -18,7 +18,7 @@ export class ReplaceStoryImagesService {
                 return item
             }
 
-            const newData = {...item}
+            const newData = {...item, plugin: 'image-plugin'}
             const id = newData?.item?.Id;
             const newAssetData = replacesUrls.find(urlMapping => urlMapping[id])?.[id];
 
