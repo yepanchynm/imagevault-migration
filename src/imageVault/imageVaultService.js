@@ -61,12 +61,12 @@ class ImageVaultService {
                 data.forEach(recursiveExtract);
             } else if (typeof data === "object" && data !== null) {
                 if (data.plugin === "image-vault" && data.item?.MediaConversions) {
-                    data.item.MediaConversions.forEach((media) => {
-                        if (media.Url.startsWith(imageVaultUrl) && !addedIds.has(media.Id)) {
-                            urls.push({ [media.Id]: media.Url });
-                            addedIds.add(media.Id);
-                        }
-                    });
+                    data.item.MediaConversions
+                        .filter((media) => media.MediaFormatName === "Original" && media.Url.startsWith(imageVaultUrl) && !addedIds.has(media.Id))
+                        .forEach((media) => {
+                          urls.push({ [media.Id]: media.Url });
+                          addedIds.add(media.Id);
+                        });
                 }
     
                 for (const key in data) {

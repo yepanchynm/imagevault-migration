@@ -183,9 +183,9 @@ const bootstrap = async () => {
         // await updateImageVaultComponents(componentsWithImageVault);
 
         const replaceStoryService = new ReplaceStoryImagesService(storyData);
-        const updatedStoryData = replaceStoryService.replace(replacesUrls).get();
+        const updatedStoryData = await replaceStoryService.replace(replacesUrls);
 
-        await saveToFile(`${WORKING_STORY_SLUG}-replaced`, updatedStoryData);
+        await saveToFile(`${WORKING_STORY_SLUG}-replaced`, updatedStoryData.get());
 
         if (updatedStoryData.id) {
             // const response = await storyblokService.updateStory(updatedStoryData.id, updatedStoryData, {
