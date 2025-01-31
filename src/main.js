@@ -9,11 +9,11 @@ import { ChangeComponentSchemaService } from "./changeComponentSchemaService.js"
 import { restoreStoriesFromFile } from './helpers/restore.js'
 
 const WORKING_STORY_SLUGS = [
-    'en/main/demos/brights/migration-test-page',
-    'zh/main/demos/brights/migration-test-page',
-    'ja/main/demos/brights/migration-test-page',
     'en/investor/demos/brights/migration-test-page',
-    'zh/main/demos/brights/migration-test-page',
+    // 'zh/main/demos/brights/migration-test-page',
+    // 'ja/main/demos/brights/migration-test-page',
+    // 'en/investor/demos/brights/migration-test-page',
+    // 'zh/main/demos/brights/migration-test-page',
 ];
 const COMPONENTS_NAMES_WHITELIST = ['imagevaultMigration']
 export const IMAGEVAULT_PLUGIN_NAME = 'image-vault';
@@ -140,12 +140,12 @@ const updateImageVaultComponents = async (componentsWithImageVault) => {
 
         await saveToFile(`${component.name}-replaced`, componentData);
 
-        const updateResponse = await storyblokService.updateComponentById(component.id, componentData);
-        if (updateResponse.status === 200) {
-            console.log(`${component.id} (${component.name}) updated successfully`);
-        } else {
-            console.log(`Failed to update component ID ${component.id} (${component.name})`);
-        }
+        // const updateResponse = await storyblokService.updateComponentById(component.id, componentData);
+        // if (updateResponse.status === 200) {
+        //     console.log(`${component.id} (${component.name}) updated successfully`);
+        // } else {
+        //     console.log(`Failed to update component ID ${component.id} (${component.name})`);
+        // }
     }
 };
 
@@ -160,22 +160,23 @@ const updateStory = async (storySlug) => {
     const replacesUrls = await processImageVaultUrls(toReplace, imageVaultService);
 
     const replaceStoryService = new ReplaceStoryImagesService(storyData);
-    const updatedStoryData = replaceStoryService.replace(replacesUrls).get();
+    await replaceStoryService.replace(replacesUrls);
+    const updatedStoryData = replaceStoryService.get();
 
     await saveToFile(`${filenamePrefix}-replaced`, updatedStoryData);
 
-    if (updatedStoryData.id) {
-        const response = await storyblokService.updateStory(updatedStoryData.id, updatedStoryData, {
-            force_update: 1,
-            publish: 1,
-        });
-
-        if (response.status === 200) {
-            console.log(`Story ${updatedStoryData.id} updated successfully`);
-        } else {
-            console.log(`Failed to update story ID ${updatedStoryData.id}`);
-        }
-    }
+    // if (updatedStoryData.id) {
+    //     const response = await storyblokService.updateStory(updatedStoryData.id, updatedStoryData, {
+    //         force_update: 1,
+    //         publish: 1,
+    //     });
+    //
+    //     if (response.status === 200) {
+    //         console.log(`Story ${updatedStoryData.id} updated successfully`);
+    //     } else {
+    //         console.log(`Failed to update story ID ${updatedStoryData.id}`);
+    //     }
+    // }
 }
 
 const getComponentsToUpdate = (components) => {
