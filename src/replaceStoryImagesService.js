@@ -36,13 +36,13 @@ export class ReplaceStoryImagesService {
                     original_url: assetUrl,
                     cropped_url: imageVaultUrl
                 });
+
+                const modifiedAssetData = { ...newAssetData };
+                modifiedAssetData.filename += '/m';
             
                 if (res.data) {
                     const { x1, y1, x2, y2 } = res.data;
-            
-                    const modifiedAssetData = { ...newAssetData };
-                    modifiedAssetData.filename += `/m/${x1}x${y1}:${x2}x${y2}`;
-            
+                    modifiedAssetData.filename += `/${x1}x${y1}:${x2}x${y2}`
                     newData.item.StoryblokImage = modifiedAssetData;
                 } else {
                     newData.item.StoryblokImage = { ...newAssetData };
@@ -53,6 +53,7 @@ export class ReplaceStoryImagesService {
                     ...newData
                 };            
             } catch (e) {
+                newData.filename += '/m'
                 console.error('Cant apply style for file ' + assetUrl);
                 console.error(e.message);
             }
