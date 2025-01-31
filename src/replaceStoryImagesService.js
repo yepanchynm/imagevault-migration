@@ -15,17 +15,17 @@ export class ReplaceStoryImagesService {
     async replace(replacesUrls) {
         this.#result = await bypassObjectEntries(this.#storyData, 'plugin', 'image-vault', async (item) => {
             if (!item.item?.Id) {
-                console.error(`There is no picture`);
-                return;
+                console.error(`There is no picture`)
+                return item
             }
 
-            const newData = { ...item };
+            const newData = {...item, plugin: 'image-plugin'}
             const id = newData?.item?.Id;
             const newAssetData = replacesUrls.find(urlMapping => urlMapping[id])?.[id];
 
             if (!newAssetData) {
-                console.error(`There is no ${id} in replacesUrls`);
-                return;
+                console.error(`There is no ${id} in replacesUrls`)
+                return item
             }
 
             const assetUrl = newAssetData.filename;

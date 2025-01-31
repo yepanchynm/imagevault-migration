@@ -8,9 +8,16 @@ import axios from "axios";
 import { ChangeComponentSchemaService } from "./changeComponentSchemaService.js";
 import { restoreStoriesFromFile } from './helpers/restore.js'
 
-const WORKING_STORY_SLUG = 'vlad-home';
-export const IMAGEVAULT_PLUGIN_NAME = 'image-vault-new';
-export const NEW_PLUGIN_NAME = 'image-plugin';
+const WORKING_STORY_SLUGS = [
+    'en/main/demos/brights/migration-test-page',
+    'zh/main/demos/brights/migration-test-page',
+    'ja/main/demos/brights/migration-test-page',
+    'en/investor/demos/brights/migration-test-page',
+    'zh/main/demos/brights/migration-test-page',
+];
+const COMPONENTS_NAMES_WHITELIST = ['imagevaultMigration']
+export const IMAGEVAULT_PLUGIN_NAME = 'image-vault';
+export const NEW_PLUGIN_NAME = 'storyblok-image-selector';
 
 const getDataFolderPath = () => {
     const __dirname = fileURLToPath(import.meta.url).replace(/\/[^\/]*$/, '');
@@ -142,11 +149,45 @@ const updateImageVaultComponents = async (componentsWithImageVault) => {
     }
 };
 
+const updateStory = async (storySlug) => {
+    const imageVaultService = new ImageVaultService();
+
+    const storyData = await storyblokService.getStoryBySlug(storySlug);
+    const filenamePrefix=  storySlug.replace(/\//g, '-')
+    await saveToFile(filenamePrefix, storyData);
+
+    const toReplace = await imageVaultService.getImageVaultUrls(storyData);
+    const replacesUrls = await processImageVaultUrls(toReplace, imageVaultService);
+
+    const replaceStoryService = new ReplaceStoryImagesService(storyData);
+    const updatedStoryData = replaceStoryService.replace(replacesUrls).get();
+
+    await saveToFile(`${filenamePrefix}-replaced`, updatedStoryData);
+
+    if (updatedStoryData.id) {
+        const response = await storyblokService.updateStory(updatedStoryData.id, updatedStoryData, {
+            force_update: 1,
+            publish: 1,
+        });
+
+        if (response.status === 200) {
+            console.log(`Story ${updatedStoryData.id} updated successfully`);
+        } else {
+            console.log(`Failed to update story ID ${updatedStoryData.id}`);
+        }
+    }
+}
+
+const getComponentsToUpdate = (components) => {
+    if (!COMPONENTS_NAMES_WHITELIST?.length) return components
+    return components.filter((component) => {
+        return COMPONENTS_NAMES_WHITELIST.includes(component.name)
+    })
+}
+
 // Main bootstrap function
 const bootstrap = async () => {
     try {
-        const imageVaultService = new ImageVaultService();
-
         const restore = false;
 
         if (restore === true) {
@@ -159,46 +200,28 @@ const bootstrap = async () => {
             await saveToFile('data-before-update', dataBeforeUpdate);
         }
 
-        const storyData = await storyblokService.getStoryBySlug(WORKING_STORY_SLUG);
-        await saveToFile(WORKING_STORY_SLUG, storyData);
-
-        const toReplace = await imageVaultService.getImageVaultUrls(storyData);
-        const replacesUrls = await processImageVaultUrls(toReplace, imageVaultService);
-
-        // const components = await storyblokService.getComponentsList();
-        // if (!components?.components) return;
-
-        // await saveToFile('components', components);
-
-        // const {
-        //     componentsWithImageVault,
-        //     componentsWithImageVaultNames,
-        //     componentsWithWhitelistedImageVault
-        // } = await processComponents(components.components);
-
-        // await saveToFile('components-with-imagevault', componentsWithImageVault);
-        // await saveToFile('components-with-imagevault-names', componentsWithImageVaultNames);
-        // await saveToFile('components-which-has-whitelisted-ImageVault', componentsWithWhitelistedImageVault);
-
-        // await updateImageVaultComponents(componentsWithImageVault);
-
-        const replaceStoryService = new ReplaceStoryImagesService(storyData);
-        const updatedStoryData = await replaceStoryService.replace(replacesUrls);
-
-        await saveToFile(`${WORKING_STORY_SLUG}-replaced`, updatedStoryData.get());
-
-        if (updatedStoryData.id) {
-            // const response = await storyblokService.updateStory(updatedStoryData.id, updatedStoryData, {
-            //     force_update: 1,
-            //     publish: 1,
-            // });
-
-            // if (response.status === 200) {
-            //     console.log(`Story ${updatedStoryData.id} updated successfully`);
-            // } else {
-            //     console.log(`Failed to update story ID ${updatedStoryData.id}`);
-            // }
+        for (const slug of WORKING_STORY_SLUGS) {
+            await updateStory(slug);
         }
+
+        const components = await storyblokService.getComponentsList();
+        if (!components?.components) return;
+
+        await saveToFile('components', components);
+
+        const {
+            componentsWithImageVault,
+            componentsWithImageVaultNames,
+            componentsWithWhitelistedImageVault
+        } = await processComponents(components.components);
+
+        await saveToFile('components-with-imagevault', componentsWithImageVault);
+        await saveToFile('components-with-imagevault-names', componentsWithImageVaultNames);
+        await saveToFile('components-which-has-whitelisted-ImageVault', componentsWithWhitelistedImageVault);
+
+        const componentsToUpdate = getComponentsToUpdate(componentsWithImageVault)
+        await updateImageVaultComponents(componentsToUpdate);
+        await saveToFile('components-to-update', componentsToUpdate);
     } catch (err) {
         console.error('Error in bootstrap:', err);
     }
