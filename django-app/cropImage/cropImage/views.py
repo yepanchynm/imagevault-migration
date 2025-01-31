@@ -23,7 +23,7 @@ def get_image_from_url(url):
     else:
         img_array = np.array(bytearray(response.content), dtype=np.uint8)
         img = cv2.imdecode(img_array, cv2.IMREAD_UNCHANGED)
-        
+
         # If format is unsupported by OpenCV, use PIL
         if img is None:
             img = convert_with_pil(response.content)
@@ -45,16 +45,60 @@ def convert_with_pil(image_data):
     return cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
 
 
-def find_crop_coordinates(original_url, cropped_url):
-    """Find coordinates of a cropped image"""
+def find_crop_coordinates(original_url, cropped_url, use_sift=True):
+    """Find coordinates of a cropped image using SIFT or ORB"""
     original = get_image_from_url(original_url)
     cropped = get_image_from_url(cropped_url)
 
-    result = cv2.matchTemplate(original, cropped, cv2.TM_CCOEFF_NORMED)
-    _, _, _, max_loc = cv2.minMaxLoc(result)
+    # Convert images to grayscale
+    gray_original = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
+    gray_cropped = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
 
-    x1, y1 = max_loc
-    x2, y2 = x1 + cropped.shape[1], y1 + cropped.shape[0]
+    # Initialize feature detector (SIFT or ORB)
+    if use_sift:
+        detector = cv2.SIFT_create()
+    else:
+        detector = cv2.ORB_create(nfeatures=5000)
+
+    # Detect keypoints and descriptors
+    keypoints1, descriptors1 = detector.detectAndCompute(gray_original, None)
+    keypoints2, descriptors2 = detector.detectAndCompute(gray_cropped, None)
+
+    if descriptors1 is None or descriptors2 is None:
+        raise ValueError("Feature detection failed. Descriptors not found.")
+
+    # Use FLANN or BFMatcher
+    if use_sift:
+        index_params = dict(algorithm=1, trees=5)  # FLANN for SIFT
+        search_params = dict(checks=50)
+        matcher = cv2.FlannBasedMatcher(index_params, search_params)
+    else:
+        matcher = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)  # BFMatcher for ORB
+
+    matches = matcher.match(descriptors2, descriptors1)
+
+    if len(matches) < 4:
+        raise ValueError("Not enough matches found to determine location")
+
+    # Get matched points
+    src_pts = np.float32([keypoints2[m.queryIdx].pt for m in matches]).reshape(-1, 1, 2)
+    dst_pts = np.float32([keypoints1[m.trainIdx].pt for m in matches]).reshape(-1, 1, 2)
+
+    # Compute homography
+    matrix, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
+
+    if matrix is None:
+        raise ValueError("Homography calculation failed")
+
+    # Get cropped image size
+    h, w = gray_cropped.shape
+
+    # Find coordinates in original image
+    pts = np.float32([[0, 0], [w, 0], [w, h], [0, h]]).reshape(-1, 1, 2)
+    dst = cv2.perspectiveTransform(pts, matrix)
+
+    x1, y1 = int(dst[0][0][0]), int(dst[0][0][1])
+    x2, y2 = int(dst[2][0][0]), int(dst[2][0][1])
 
     return x1, y1, x2, y2
 
@@ -74,7 +118,10 @@ def check_crop(request):
             if not is_valid_image_url(original_url) or not is_valid_image_url(cropped_url):
                 return JsonResponse({"error": "Invalid file format"}, status=400)
 
-            x1, y1, x2, y2 = find_crop_coordinates(original_url, cropped_url)
+            # Use SIFT or ORB (default: SIFT)
+            use_sift = data.get("use_sift", True)
+
+            x1, y1, x2, y2 = find_crop_coordinates(original_url, cropped_url, use_sift=use_sift)
 
             return JsonResponse({"x1": x1, "y1": y1, "x2": x2, "y2": y2})
 
