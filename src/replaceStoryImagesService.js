@@ -36,21 +36,22 @@ export class ReplaceStoryImagesService {
                     original_url: assetUrl,
                     cropped_url: imageVaultUrl
                 });
-
+            
                 if (res.data) {
                     const { x1, y1, x2, y2 } = res.data;
-                    newAssetData.filename += `/m/${x1}x${y1}:${x2}x${y2}`;
+            
+                    const modifiedAssetData = { ...newAssetData };
+                    modifiedAssetData.filename += `/m/${x1}x${y1}:${x2}x${y2}`;
+            
+                    newData.item.StoryblokImage = modifiedAssetData;
+                } else {
+                    newData.item.StoryblokImage = { ...newAssetData };
                 }
-
-                newData.item.StoryblokImage = {
-                    ...newAssetData
-                };
-
-                console.log(`[ID ${id}] ${newData.item?.MediaConversions?.[0].Url} replaced with: ${newAssetData.filename}`);
+            
+                console.log(`[ID ${id}] ${newData.item?.MediaConversions?.[0].Url} replaced with: ${newData.item.StoryblokImage.filename}`);
                 return {
                     ...newData
-                };
-
+                };            
             } catch (e) {
                 console.error('Cant apply style for file ' + assetUrl);
                 console.error(e.message);
