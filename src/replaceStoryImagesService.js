@@ -31,21 +31,20 @@ export class ReplaceStoryImagesService {
             const assetUrl = newAssetData.filename;
             const imageVaultUrl = newData.item?.MediaConversions?.[0].Url;
 
+            const modifiedAssetData = { ...newAssetData };
+
             try {
                 const res = await axios.post('http://127.0.0.1:8000/check-crop/', {
                     original_url: assetUrl,
                     cropped_url: imageVaultUrl
                 });
-
-                const modifiedAssetData = { ...newAssetData };
-                modifiedAssetData.filename += '/m';
             
-                if (res.data) {
+                if (res.data && res.data.x1 && res.data.x2 && res.data.y1 && res.data.y2) {
                     const { x1, y1, x2, y2 } = res.data;
-                    modifiedAssetData.filename += `/${x1}x${y1}:${x2}x${y2}`
+                    modifiedAssetData.filename += `/m/${x1}x${y1}:${x2}x${y2}`
                     newData.item.StoryblokImage = modifiedAssetData;
                 } else {
-                    newData.item.StoryblokImage = { ...newAssetData };
+                    throw new Error('Empty body or not all needed data')
                 }
             
                 console.log(`[ID ${id}] ${newData.item?.MediaConversions?.[0].Url} replaced with: ${newData.item.StoryblokImage.filename}`);
@@ -53,12 +52,16 @@ export class ReplaceStoryImagesService {
                     ...newData
                 };            
             } catch (e) {
-                newData.filename += '/m'
                 console.error('Cant apply style for file ' + assetUrl);
                 console.error(e.message);
-            }
 
-            return newData;
+                modifiedAssetData.filename += '/m/0x0:0x0';
+
+                newData.item.StoryblokImage = modifiedAssetData;
+                return {
+                    ...newData
+                };
+            }
         });
         return this;
     }
