@@ -38,10 +38,17 @@ export class ReplaceStoryImagesService {
                     original_url: assetUrl,
                     cropped_url: imageVaultUrl
                 });
-            
-                if (res.data && res.data.x1 && res.data.x2 && res.data.y1 && res.data.y2) {
+
+                if (res.data && !isNaN(res.data.x1) && !isNaN(res.data.x2) && !isNaN(res.data.y1) && !isNaN(res.data.y2)) {
                     const { x1, y1, x2, y2 } = res.data;
-                    modifiedAssetData.filename += `/m/${x1}x${y1}:${x2}x${y2}`
+
+                    // Check max and min values & clamp by 0
+                    const newX1 = Math.max(Math.min(x1, x2), 0)
+                    const newX2 = Math.max(Math.max(x1, x2), 0)
+                    const newY1 = Math.max(Math.min(y1, y2), 0)
+                    const newY2 = Math.max(Math.max(y1, y2), 0)
+
+                    modifiedAssetData.filename += `/m/${newX1}x${newY1}:${newX2}x${newY2}`
                     newData.item.StoryblokImage = modifiedAssetData;
                 } else {
                     throw new Error('Empty body or not all needed data')

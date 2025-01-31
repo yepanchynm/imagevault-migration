@@ -12,8 +12,8 @@ export class ChangeComponentSchemaService {
         this.#schema = schema;
     }
 
-    replace() {
-        this.#result = bypassObjectEntries(this.#schema, 'field_type', IMAGEVAULT_PLUGIN_NAME, (item) => {
+    async replace() {
+        this.#result = await bypassObjectEntries(this.#schema, 'field_type', IMAGEVAULT_PLUGIN_NAME, (item) => {
             return {
                 ...item,
                 field_type: NEW_PLUGIN_NAME
