@@ -41,16 +41,7 @@ export class ReplaceStoryImagesService {
                         cropped_url: imageVaultUrl
                     });
                 } catch (error) {
-                    if (error.response?.status === 500) {
-                        console.warn('Received 500, retrying with { use_sift: false }...');
-                        res = await axios.post('http://127.0.0.1:8000/check-crop/', {
-                            original_url: assetUrl,
-                            cropped_url: imageVaultUrl,
-                            use_sift: false
-                        });
-                    } else {
-                        throw error;
-                    }
+                    throw  new Error('Error while get crop image size.');
                 }
 
                 if (res.data && !isNaN(res.data.x1) && !isNaN(res.data.x2) && !isNaN(res.data.y1) && !isNaN(res.data.y2)) {
