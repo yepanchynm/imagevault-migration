@@ -14,9 +14,15 @@ export class ChangeComponentSchemaService {
 
     async replace() {
         this.#result = await bypassObjectEntries(this.#schema, 'field_type', IMAGEVAULT_PLUGIN_NAME, (item) => {
+            const { pos, id } = item
             return {
-                ...item,
-                field_type: NEW_PLUGIN_NAME
+                type: "asset",
+                filetypes: [
+                    "images"
+                ],
+                id,
+                pos,
+
             }
         })
         return this
