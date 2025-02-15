@@ -9,7 +9,8 @@ import { ChangeComponentSchemaService } from "./changeComponentSchemaService.js"
 import { restoreStoriesFromFile } from './helpers/restore.js'
 
 const WORKING_STORY_SLUGS = [
-    'home-ksusha',
+    'en/investor/demos/brights/copy-for-save',
+    'en/investor/demos/brights/demo-vlad'
 ];
 
 const COMPONENTS_NAMES_WHITELIST = []
@@ -163,14 +164,23 @@ const updateStory = async (storySlug) => {
 
     await saveToFile(`${filenamePrefix}-replaced`, updatedStoryData);
 
-    if (updatedStoryData.id) {
-        const response = await storyblokService.updateStory(updatedStoryData.id, updatedStoryData, {
-            force_update: 1,
-            publish: 1,
-        });
+    if (updatedStoryData.id && updatedStoryData.full_slug) {
+        const isPublished = await storyblokService.isStoryPublished(updatedStoryData.full_slug);
+        const response = await storyblokService.updateStory(
+            updatedStoryData.id, 
+            updatedStoryData, 
+            { 
+                force_update: 1,
+                ...( isPublished ? { publish: 1 } : {} )
+            }
+        );
 
         if (response.status === 200) {
-            console.log(`Story ${updatedStoryData.id} updated successfully`);
+            if ( isPublished ) {
+                console.log(`Story ${updatedStoryData.id} updated and publish successfully`);
+            } else {
+                console.log(`Story ${updatedStoryData.id} updated but NOT published successfully`);
+            }
         } else {
             console.log(`Failed to update story ID ${updatedStoryData.id}`);
         }
@@ -195,32 +205,32 @@ const bootstrap = async () => {
             await restoreStoriesFromFile(stories);
             return
         } else {
-            const dataBeforeUpdate = await storyblokService.getAllStories();
-            await saveToFile('data-before-update', dataBeforeUpdate);
+            // const dataBeforeUpdate = await storyblokService.getAllStories();
+            // await saveToFile('data-before-update', dataBeforeUpdate);
         }
 
         for (const slug of WORKING_STORY_SLUGS) {
             await updateStory(slug);
         }
 
-        const components = await storyblokService.getComponentsList();
-        if (!components?.components) return;
+        // const components = await storyblokService.getComponentsList();
+        // if (!components?.components) return;
 
-        await saveToFile('components', components);
+        // await saveToFile('components', components);
 
-        const {
-            componentsWithImageVault,
-            componentsWithImageVaultNames,
-            componentsWithWhitelistedImageVault
-        } = await processComponents(components.components);
+        // const {
+        //     componentsWithImageVault,
+        //     componentsWithImageVaultNames,
+        //     componentsWithWhitelistedImageVault
+        // } = await processComponents(components.components);
 
-        await saveToFile('components-with-imagevault', componentsWithImageVault);
-        await saveToFile('components-with-imagevault-names', componentsWithImageVaultNames);
-        await saveToFile('components-which-has-whitelisted-ImageVault', componentsWithWhitelistedImageVault);
+        // await saveToFile('components-with-imagevault', componentsWithImageVault);
+        // await saveToFile('components-with-imagevault-names', componentsWithImageVaultNames);
+        // await saveToFile('components-which-has-whitelisted-ImageVault', componentsWithWhitelistedImageVault);
 
-        const componentsToUpdate = getComponentsToUpdate(componentsWithImageVault)
-        await updateImageVaultComponents(componentsToUpdate);
-        await saveToFile('components-to-update', componentsToUpdate);
+        // const componentsToUpdate = getComponentsToUpdate(componentsWithImageVault)
+        // await updateImageVaultComponents(componentsToUpdate);
+        // await saveToFile('components-to-update', componentsToUpdate);
     } catch (err) {
         console.error('Error in bootstrap:', err);
     }
