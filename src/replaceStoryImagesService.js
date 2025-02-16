@@ -19,7 +19,9 @@ export class ReplaceStoryImagesService {
                 return item
             }
 
-            let newData = {}
+            let newData = {
+                item: item?.item
+            }
 
             const id = item?.item?.Id;
             const newAssetData = replacesUrls.find(urlMapping => urlMapping[id])?.[id];
@@ -44,8 +46,6 @@ export class ReplaceStoryImagesService {
                 fieldtype: "asset",
                 is_external_url: false,
             };
-
-            modifiedAssetData.meta_data = !!modifiedAssetData?.meta_data ? {...modifiedAssetData.meta_data, item: item?.item} : { item: item?.item }
 
             try {
                 let res;

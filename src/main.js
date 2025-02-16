@@ -9,12 +9,15 @@ import { ChangeComponentSchemaService } from "./changeComponentSchemaService.js"
 import { restoreStoriesFromFile } from './helpers/restore.js'
 
 const WORKING_STORY_SLUGS = [
-    'home-ksusha',
+    'en/investor/demos/brights/migration-test-page',
+    // 'zh/main/demos/brights/migration-test-page',
+    // 'ja/main/demos/brights/migration-test-page',
+    // 'sv/investor/demos/brights/migration-test-page',
+    // 'en/main/demos/brights/migration-test-page'
 ];
 
-const COMPONENTS_NAMES_WHITELIST = []
-export const IMAGEVAULT_PLUGIN_NAME = 'image-vault-new';
-export const NEW_PLUGIN_NAME = 'storyblok-image-selector';
+const COMPONENTS_NAMES_WHITELIST = ['imagevaultMigration']
+export const IMAGEVAULT_PLUGIN_NAME = 'image-vault';
 
 const getDataFolderPath = () => {
     const __dirname = fileURLToPath(import.meta.url).replace(/\/[^\/]*$/, '');

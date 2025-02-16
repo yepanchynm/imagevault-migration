@@ -1,5 +1,5 @@
 import {bypassObjectEntries} from "./helpers/bypassObjectEntries.js";
-import {IMAGEVAULT_PLUGIN_NAME, NEW_PLUGIN_NAME} from "./main.js";
+import {IMAGEVAULT_PLUGIN_NAME} from "./main.js";
 
 export class ChangeComponentSchemaService {
     #schema
