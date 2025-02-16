@@ -1,4 +1,4 @@
-import { getInstance, updateInstance } from "./storyblokClient.js";
+import { getInstance, updateInstance, getV1Instance } from "./storyblokClient.js";
 import {configService} from "./configService.js";
 import FormData from 'form-data';
 import axios from "axios";
@@ -13,25 +13,27 @@ class StoryblokService {
         const perPage = 25;
         let params = {
             per_page: perPage,
-            page: 1,
+            page: 1
         };
+        
+        const firstResponse = await getInstance.get("/stories?version=draft", params);
 
-        let firstResponse = await getInstance.get("/stories", params);
-        let lastPage = firstResponse.total
-            ? Math.ceil(firstResponse.total / perPage)
-            : 1;
+        const total = firstResponse.headers['total'];
+
+        const lastPage = total ? Math.ceil(total / perPage) : 1
 
         let otherStories = [];
         for (let currentPage = 2; currentPage <= lastPage; currentPage++) {
             params.page = currentPage;
-            otherStories.push((await getInstance.get("/stories", params)).data.stories);
+            const res =  await getInstance.get("/stories?version=draft", params);
+            otherStories.push(res.data.stories);
         }
 
         return [firstResponse.data.stories, ...otherStories].flat();
     }
 
     async getStoryBySlug(storySlug) {
-        const { data } = await getInstance.get(`/stories/${storySlug}`)
+        const { data } = await getInstance.get(`/stories/${storySlug}?version=draft`)
         return data.story
     }
 
@@ -95,6 +97,13 @@ class StoryblokService {
             filename: fixedUrl,
             meta_data
         };
+    }
+
+    // Check if story is published or no
+    async isStoryPublished(fullSlag) {
+        const response = await getV1Instance.get(`/stories?with_summary=1&has_filter=true&text_search=${fullSlag}`);
+
+        return response.data.stories[0].published && !response.data.stories[0].unpublished_changes;
     }
 }
 

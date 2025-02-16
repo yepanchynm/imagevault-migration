@@ -166,14 +166,23 @@ const updateStory = async (storySlug) => {
 
     await saveToFile(`${filenamePrefix}-replaced`, updatedStoryData);
 
-    if (updatedStoryData.id) {
-        const response = await storyblokService.updateStory(updatedStoryData.id, updatedStoryData, {
-            force_update: 1,
-            publish: 1,
-        });
+    if (updatedStoryData.id && updatedStoryData.full_slug) {
+        const isPublished = await storyblokService.isStoryPublished(updatedStoryData.full_slug);
+        const response = await storyblokService.updateStory(
+            updatedStoryData.id,
+            updatedStoryData,
+            {
+                force_update: 1,
+                ...( isPublished ? { publish: 1 } : {} )
+            }
+        );
 
         if (response.status === 200) {
-            console.log(`Story ${updatedStoryData.id} updated successfully`);
+            if ( isPublished ) {
+                console.log(`Story ${updatedStoryData.id} updated and publish successfully`);
+            } else {
+                console.log(`Story ${updatedStoryData.id} updated but NOT published successfully`);
+            }
         } else {
             console.log(`Failed to update story ID ${updatedStoryData.id}`);
         }
