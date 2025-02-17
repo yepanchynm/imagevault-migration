@@ -29,12 +29,21 @@ const getDataFolderPath = () => {
     return path;
 };
 
-const getStoryFilename = (name) => join(getDataFolderPath(), `${name}.stories.json`);
+const getStoryFilename = (name, folder = '') => {
+    const basePath = getDataFolderPath();
+    const targetPath = folder && ['before', 'after', 'components'].includes(folder) ? join(basePath, folder) : basePath;
+
+    if (!existsSync(targetPath)) {
+        mkdirSync(targetPath);
+    }
+
+    return join(targetPath, `${name}.stories.json`);
+};
 
 const getReplacesUrlsFilename = () => join(getDataFolderPath(), 'replacesUrls.json');
 
-const saveToFile = async (filename, data) => {
-    await fs.writeFile(getStoryFilename(filename), JSON.stringify(data, null, 2));
+const saveToFile = async (filename, data, folder = '') => {
+    await fs.writeFile(getStoryFilename(filename, folder), JSON.stringify(data, null, 2));
     console.log(`${filename} file created`);
 };
 
@@ -156,7 +165,7 @@ const updateStory = async (storySlug) => {
 
     const storyData = await storyblokService.getStoryBySlug(storySlug);
     const filenamePrefix=  storySlug.replace(/\//g, '-')
-    await saveToFile(filenamePrefix, storyData);
+    await saveToFile(filenamePrefix, storyData, 'before');
 
     const toReplace = await imageVaultService.getImageVaultUrls(storyData);
     const replacesUrls = await processImageVaultUrls(toReplace, imageVaultService);
@@ -165,7 +174,7 @@ const updateStory = async (storySlug) => {
     await replaceStoryService.replace(replacesUrls);
     const updatedStoryData = replaceStoryService.get();
 
-    await saveToFile(`${filenamePrefix}-replaced`, updatedStoryData);
+    await saveToFile(`${filenamePrefix}`, updatedStoryData, 'after');
 
     if (updatedStoryData.id && updatedStoryData.full_slug) {
         const isPublished = await storyblokService.isStoryPublished(updatedStoryData.full_slug);
@@ -204,7 +213,7 @@ const bootstrap = async () => {
 
         if (restore === 'true') {
             console.log('Starting restoring...')
-            const restoreData = await fs.readFile(getStoryFilename('data-before-update'));
+            const restoreData = await fs.readFile(getStoryFilename('data-to-update'));
             const stories = JSON.parse(restoreData);
             await restoreStoriesFromFile(stories);
             
@@ -214,7 +223,7 @@ const bootstrap = async () => {
             return
         } else {
             const dataBeforeUpdate = await storyblokService.getAllStories();
-            await saveToFile('data-before-update', dataBeforeUpdate);
+            await saveToFile('data-to-update', dataBeforeUpdate);
         }
 
         for (const slug of WORKING_STORY_SLUGS) {
@@ -224,7 +233,7 @@ const bootstrap = async () => {
         const components = await storyblokService.getComponentsList();
         if (!components?.components) return;
 
-        await saveToFile('components', components);
+        await saveToFile('components', components, 'components');
 
         const {
             componentsWithImageVault,
@@ -232,9 +241,9 @@ const bootstrap = async () => {
             componentsWithWhitelistedImageVault
         } = await processComponents(components.components);
 
-        await saveToFile('components-with-imagevault', componentsWithImageVault);
-        await saveToFile('components-with-imagevault-names', componentsWithImageVaultNames);
-        await saveToFile('components-which-has-whitelisted-ImageVault', componentsWithWhitelistedImageVault);
+        await saveToFile('components-with-imagevault', componentsWithImageVault, 'components');
+        await saveToFile('components-with-imagevault-names', componentsWithImageVaultNames, 'components');
+        await saveToFile('components-which-has-whitelisted-ImageVault', componentsWithWhitelistedImageVault, 'components');
 
         const componentsToUpdate = getComponentsToUpdate(componentsWithImageVault)
         await updateImageVaultComponents(componentsToUpdate);

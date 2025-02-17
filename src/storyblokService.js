@@ -10,6 +10,7 @@ class StoryblokService {
     constructor () {}
 
     async getAllStories () {
+        console.log('Starting saving all stories...');
         const perPage = 25;
         let params = {
             per_page: perPage,
@@ -19,6 +20,8 @@ class StoryblokService {
         const firstResponse = await getInstance.get("/stories?version=draft", params);
 
         const total = firstResponse.headers['total'];
+
+        console.log('Total count of stories: ' + total);
 
         const lastPage = total ? Math.ceil(total / perPage) : 1
 
