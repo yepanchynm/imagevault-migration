@@ -67,8 +67,6 @@ export class ReplaceStoryImagesService {
                     const newY1 = Math.max(Math.min(y1, y2), 0)
                     const newY2 = Math.max(Math.max(y1, y2), 0)
 
-                    console.log(`/m/${newX1}x${newY1}:${newX2}x${newY2}`)
-
                     // modifiedAssetData.filename += `/m/${newX1}x${newY1}:${newX2}x${newY2}`
                     modifiedAssetData.meta_data.crop = {
                         x1: newX1,
@@ -80,8 +78,7 @@ export class ReplaceStoryImagesService {
                 } else {
                     throw new Error('Empty body or not all needed data')
                 }
-            
-                console.log(`[ID ${id}] ${item?.item?.MediaConversions?.[0].Url} replaced with: ${newData.filename}`);
+                console.log(`[ID ${id}] ${item?.item?.MediaConversions?.[0].Url} replaced with: ${newData.filename}/m/${newData.meta_data.crop.x1}x${newData.meta_data.crop.y1}:${newData.meta_data.crop.x2}x${newData.meta_data.crop.y2}`);
                 return {
                     ...newData
                 };            
