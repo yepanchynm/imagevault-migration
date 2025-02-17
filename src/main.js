@@ -225,8 +225,8 @@ const bootstrap = async () => {
             await restoreComponentsFromFile(components);
             return
         } else {
-            // const dataBeforeUpdate = await storyblokService.getAllStories();
-            // await saveToFile('data-to-update', dataBeforeUpdate);
+            const dataBeforeUpdate = await storyblokService.getAllStories();
+            await saveToFile('data-to-update', dataBeforeUpdate);
         }
 
         for (const slug of WORKING_STORY_SLUGS) {

@@ -166,7 +166,7 @@ def generate_excel(request):
                 json_data = json.load(file)
 
             dir_path = os.path.dirname(full_path)
-            excel_filename = os.path.join(dir_path, 'report.xls')
+            excel_filename = os.path.join(dir_path, 'report.xlsx')
 
             create_excel(json_data, excel_filename)
 
