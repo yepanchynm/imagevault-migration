@@ -11,27 +11,26 @@ from PIL import Image
 
 
 def get_image_from_url(url):
-    """Retrieve an image from a URL as a NumPy array"""
+    """Retrieve an image from a URL as a NumPy array."""
     response = requests.get(url)
     if response.status_code != 200:
         raise ValueError("Failed to download image")
 
     content_type = response.headers.get("Content-Type", "")
-
+    
+    # Handle SVG format
     if "image/svg+xml" in content_type or url.lower().endswith(".svg"):
         return convert_svg_to_png(response.content)
     else:
         img_array = np.array(bytearray(response.content), dtype=np.uint8)
         img = cv2.imdecode(img_array, cv2.IMREAD_UNCHANGED)
-
         if img is None:
             img = convert_with_pil(response.content)
-
         return img
 
 
 def convert_svg_to_png(svg_data):
-    """Convert SVG to PNG"""
+    """Convert an SVG image to PNG format."""
     png_data = BytesIO()
     cairosvg.svg2png(bytestring=svg_data, write_to=png_data)
     img_array = np.array(bytearray(png_data.getvalue()), dtype=np.uint8)
@@ -39,27 +38,26 @@ def convert_svg_to_png(svg_data):
 
 
 def convert_with_pil(image_data):
-    """Convert non-standard formats (TIF, WEBP) to OpenCV"""
+    """Convert non-standard image formats (e.g., TIF, WEBP) to OpenCV format."""
     image = Image.open(BytesIO(image_data)).convert("RGB")
     return cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
 
 
 def enhance_image(img):
-    """Enhance contrast using CLAHE and apply edge detection"""
+    """Enhance contrast using CLAHE and apply edge detection."""
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
+    
     # Apply CLAHE (Adaptive Histogram Equalization)
     clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
     gray = clahe.apply(gray)
-
+    
     # Apply Canny edge detection
     edges = cv2.Canny(gray, 50, 150)
-
     return gray, edges
 
 
 def find_crop_coordinates(original_url, cropped_url):
-    """Find coordinates of a cropped image using SIFT, ORB, and edge detection"""
+    """Find coordinates of a cropped image inside the original image."""
     original = get_image_from_url(original_url)
     cropped = get_image_from_url(cropped_url)
 
@@ -67,21 +65,20 @@ def find_crop_coordinates(original_url, cropped_url):
     gray_original, edges_original = enhance_image(original)
     gray_cropped, edges_cropped = enhance_image(cropped)
 
-    # Try SIFT first
+    # Try SIFT feature matching
     sift = cv2.SIFT_create()
     keypoints1, descriptors1 = sift.detectAndCompute(gray_original, None)
     keypoints2, descriptors2 = sift.detectAndCompute(gray_cropped, None)
 
     if descriptors1 is None or descriptors2 is None or len(descriptors1) < 10 or len(descriptors2) < 10:
         # Fall back to ORB if SIFT fails
-        orb = cv2.ORB_create(nfeatures=5000)
+        orb = cv2.ORB_create(nfeatures=10000)
         keypoints1, descriptors1 = orb.detectAndCompute(edges_original, None)
         keypoints2, descriptors2 = orb.detectAndCompute(edges_cropped, None)
-
         if descriptors1 is None or descriptors2 is None:
             raise ValueError("Feature detection failed with both SIFT and ORB")
 
-    # Use FLANN for SIFT or BFMatcher for ORB
+    # Use FLANN for SIFT, BFMatcher for ORB
     if len(descriptors1) >= 10 and len(descriptors2) >= 10:
         index_params = dict(algorithm=1, trees=5)
         search_params = dict(checks=50)
@@ -89,16 +86,23 @@ def find_crop_coordinates(original_url, cropped_url):
     else:
         matcher = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 
-    matches = matcher.match(descriptors2, descriptors1)
-    if len(matches) < 4:
-        raise ValueError("Not enough matches found")
+    matches = matcher.knnMatch(descriptors2, descriptors1, k=2)  # KNN matching
+
+    # Lowe’s ratio test to filter matches
+    good_matches = []
+    for m, n in matches:
+        if m.distance < 0.75 * n.distance:
+            good_matches.append(m)
+
+    if len(good_matches) < 4:
+        raise ValueError("Not enough good matches found")
 
     # Get matched points
-    src_pts = np.float32([keypoints2[m.queryIdx].pt for m in matches]).reshape(-1, 1, 2)
-    dst_pts = np.float32([keypoints1[m.trainIdx].pt for m in matches]).reshape(-1, 1, 2)
+    src_pts = np.float32([keypoints2[m.queryIdx].pt for m in good_matches]).reshape(-1, 1, 2)
+    dst_pts = np.float32([keypoints1[m.trainIdx].pt for m in good_matches]).reshape(-1, 1, 2)
 
     # Compute homography
-    matrix, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
+    matrix, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 3.0)
     if matrix is None:
         raise ValueError("Homography calculation failed")
 
@@ -117,29 +121,29 @@ def find_crop_coordinates(original_url, cropped_url):
 
 @csrf_exempt
 def check_crop(request):
+    """API endpoint to check cropping coordinates."""
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-
             original_url = data.get("original_url")
             cropped_url = data.get("cropped_url")
 
             if not original_url or not cropped_url:
                 return JsonResponse({"error": "Missing URLs"}, status=400)
-
+            
             if not is_valid_image_url(original_url) or not is_valid_image_url(cropped_url):
                 return JsonResponse({"error": "Invalid file format"}, status=400)
 
             x1, y1, x2, y2 = find_crop_coordinates(original_url, cropped_url)
-
             return JsonResponse({"x1": x1, "y1": y1, "x2": x2, "y2": y2})
 
         except Exception as e:
+            raise e
             return JsonResponse({"error": str(e)}, status=500)
 
 
 def is_valid_image_url(url):
-    """Check if a URL is an image"""
+    """Check if a URL points to an image file."""
     image_extensions = (".jpg", ".jpeg", ".png", ".gif", ".svg", ".tif", ".tiff", ".webp")
     mimetype, _ = mimetypes.guess_type(url)
     return mimetype and mimetype.startswith("image/") or url.lower().endswith(image_extensions)
