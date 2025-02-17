@@ -52,6 +52,7 @@ class StoryblokService {
     }
 
     async updateStory(storyId, newData, opts = {}) {
+        if (newData.full_slag === 'en/investor/newsroom/press-kit-media-assets') return
         return await updateInstance.put(`/stories/${storyId}`, {
             story: newData,
             ...opts
