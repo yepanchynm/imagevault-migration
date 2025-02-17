@@ -6,7 +6,8 @@ import ImageVaultService from './imageVault/imageVaultService.js';
 import { fileURLToPath } from 'url';
 import axios from "axios";
 import { ChangeComponentSchemaService } from "./changeComponentSchemaService.js";
-import { restoreStoriesFromFile } from './helpers/restore.js'
+import { restoreStoriesFromFile, restoreComponentsFromFile } from './helpers/restore.js';
+import {configService} from "./configService.js";
 
 const WORKING_STORY_SLUGS = [
     'en/investor/demos/brights/migration-test-page',
@@ -199,12 +200,17 @@ const getComponentsToUpdate = (components) => {
 // Main bootstrap function
 const bootstrap = async () => {
     try {
-        const restore = false;
+        const restore = configService.get('RESTORE') || 'false';
 
-        if (restore === true) {
-            const restoreData = fs.readFile(getStoryFilename('data-before-update'));
+        if (restore === 'true') {
+            console.log('Starting restoring...')
+            const restoreData = await fs.readFile(getStoryFilename('data-before-update'));
             const stories = JSON.parse(restoreData);
             await restoreStoriesFromFile(stories);
+            
+            const restoredComponents = await fs.readFile(getStoryFilename('components-to-update'));
+            const components = JSON.parse(restoredComponents);
+            await restoreComponentsFromFile(components);
             return
         } else {
             const dataBeforeUpdate = await storyblokService.getAllStories();
