@@ -8,6 +8,9 @@ import mimetypes
 import cairosvg
 from io import BytesIO
 from PIL import Image
+import pandas as pd
+import xlsxwriter
+import os
 
 
 def get_image_from_url(url):
@@ -147,3 +150,52 @@ def is_valid_image_url(url):
     image_extensions = (".jpg", ".jpeg", ".png", ".gif", ".svg", ".tif", ".tiff", ".webp")
     mimetype, _ = mimetypes.guess_type(url)
     return mimetype and mimetype.startswith("image/") or url.lower().endswith(image_extensions)
+
+
+@csrf_exempt
+def generate_excel(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            full_path = data.get("full_path")
+
+            if not full_path or not os.path.exists(full_path):
+                return JsonResponse({"error": "Invalid or missing path"}, status=400)
+
+            with open(full_path, "r", encoding="utf-8") as file:
+                json_data = json.load(file)
+
+            dir_path = os.path.dirname(full_path)
+            excel_filename = os.path.join(dir_path, 'report.xls')
+
+            create_excel(json_data, excel_filename)
+
+            return JsonResponse({"message": "Excel file created"})
+        
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+        
+
+def create_excel(data, file_path):
+    rows = []
+    for full_slug, images in data.items():
+        for image in images:
+            rows.append({
+                "Full Path": full_slug,
+                "Old URL": image["old_url"],
+                "New URL": image["new_url"]
+            })
+    
+    df = pd.DataFrame(rows)
+    writer = pd.ExcelWriter(file_path, engine="xlsxwriter")
+    df.to_excel(writer, index=False, sheet_name="Images")
+    
+    # Add clickable links
+    workbook = writer.book
+    worksheet = writer.sheets["Images"]
+    
+    for row_num, row in enumerate(rows, start=1):
+        worksheet.write_url(row_num, 1, row["Old URL"], string="Old Image")
+        worksheet.write_url(row_num, 2, row["New URL"], string="New Image")
+    
+    writer.close()

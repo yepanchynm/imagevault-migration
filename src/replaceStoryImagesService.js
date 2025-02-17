@@ -4,6 +4,7 @@ import axios from "axios";
 export class ReplaceStoryImagesService {
     #storyData
     #result = null
+    #replacements = []
 
     constructor(storyData) {
         if (!storyData) {
@@ -13,6 +14,7 @@ export class ReplaceStoryImagesService {
     }
 
     async replace(replacesUrls) {
+        this.#replacements = [];
         this.#result = await bypassObjectEntries(this.#storyData, 'plugin', 'image-vault', async (item) => {
             if (!item.item?.Id) {
                 console.error(`There is no picture`)
@@ -80,6 +82,12 @@ export class ReplaceStoryImagesService {
                     throw new Error('Empty body or not all needed data')
                 }
                 console.log(`[ID ${id}] ${item?.item?.MediaConversions?.[0].Url} replaced with: ${newData.filename}/m/${newData.meta_data.crop.x1}x${newData.meta_data.crop.y1}:${newData.meta_data.crop.x2}x${newData.meta_data.crop.y2}`);
+
+                this.#replacements.push({
+                    old_url: imageVaultUrl,
+                    new_url: `${newData.filename}/m/${newData.meta_data.crop.x1}x${newData.meta_data.crop.y1}:${newData.meta_data.crop.x2}x${newData.meta_data.crop.y2}`
+                });
+
                 return {
                     ...newData
                 };            
@@ -96,6 +104,11 @@ export class ReplaceStoryImagesService {
                     }
                 };
                 newData = {...newData, ...modifiedAssetData}
+
+                this.#replacements.push({
+                    old_url: imageVaultUrl,
+                    new_url: modifiedAssetData.filename
+                });
     
                 return {
                     ...newData
@@ -107,5 +120,9 @@ export class ReplaceStoryImagesService {
 
     get() {
         return this.#result;
+    }
+
+    getReplacements() {
+        return this.#replacements;
     }
 }

@@ -17,6 +17,8 @@ const WORKING_STORY_SLUGS = [
     // 'en/main/demos/brights/migration-test-page'
 ];
 
+const DATA_FOR_EXCEL = {};
+
 const COMPONENTS_NAMES_WHITELIST = ['imagevaultMigration']
 export const IMAGEVAULT_PLUGIN_NAME = 'image-vault';
 
@@ -149,7 +151,7 @@ const updateImageVaultComponents = async (componentsWithImageVault) => {
         await replaceSchemaService.replace()
         componentData.component.schema = replaceSchemaService.get();
 
-        await saveToFile(`${component.name}-replaced`, componentData);
+        await saveToFile(`${component.name}-replaced`, componentData, 'components');
 
         const updateResponse = await storyblokService.updateComponentById(component.id, componentData);
         if (updateResponse.status === 200) {
@@ -160,7 +162,7 @@ const updateImageVaultComponents = async (componentsWithImageVault) => {
     }
 };
 
-const updateStory = async (storySlug) => {
+const updateStory = async (storySlug, dataForExcel) => {
     const imageVaultService = new ImageVaultService();
 
     const storyData = await storyblokService.getStoryBySlug(storySlug);
@@ -188,6 +190,7 @@ const updateStory = async (storySlug) => {
         );
 
         if (response.status === 200) {
+            DATA_FOR_EXCEL[`${updatedStoryData.full_slug}`] = replaceStoryService.getReplacements()
             if ( isPublished ) {
                 console.log(`Story ${updatedStoryData.id} updated and publish successfully`);
             } else {
@@ -222,13 +225,15 @@ const bootstrap = async () => {
             await restoreComponentsFromFile(components);
             return
         } else {
-            const dataBeforeUpdate = await storyblokService.getAllStories();
-            await saveToFile('data-to-update', dataBeforeUpdate);
+            // const dataBeforeUpdate = await storyblokService.getAllStories();
+            // await saveToFile('data-to-update', dataBeforeUpdate);
         }
 
         for (const slug of WORKING_STORY_SLUGS) {
             await updateStory(slug);
         }
+
+        await saveToFile('data-for-excel', DATA_FOR_EXCEL);
 
         const components = await storyblokService.getComponentsList();
         if (!components?.components) return;
