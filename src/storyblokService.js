@@ -105,9 +105,26 @@ class StoryblokService {
 
     // Check if story is published or no
     async isStoryPublished(fullSlag) {
-        const response = await getV1Instance.get(`/stories?with_summary=1&has_filter=true&text_search=${fullSlag}`);
+        let page = 1;
+        const perPage = 100;
+    
+        while (true) {
+            const response = await getV1Instance.get(`/stories?with_summary=1&has_filter=true&page=${page}&per_page=${perPage}&text_search=${fullSlag}`);
+            const stories = response.data.stories;
 
-        return response.data.stories[0].published && !response.data.stories[0].unpublished_changes;
+            if (!stories || stories.length === 0) {
+                return false;
+            }
+    
+            for (const story of stories) {
+
+                if (story.full_slug === fullSlag) {
+                    return story.published && !story.unpublished_changes;
+                }
+            }
+    
+            page++;
+        }
     }
 }
 
