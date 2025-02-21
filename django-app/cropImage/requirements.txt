@@ -11,11 +11,17 @@ idna==3.10
 numpy==2.2.2
 opencv-python==4.11.0.86
 opencv-python-headless==4.11.0.86
+pandas==2.2.3
 pillow==11.1.0
 pycparser==2.22
+python-dateutil==2.9.0.post0
+pytz==2025.1
 requests==2.32.3
+six==1.17.0
 sqlparse==0.5.3
 svgwrite==1.4.3
 tinycss2==1.4.0
+tzdata==2025.1
 urllib3==2.3.0
 webencodings==0.5.1
+XlsxWriter==3.2.2
