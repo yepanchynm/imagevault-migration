@@ -1,19 +1,26 @@
-export async function bypassObjectEntries(obj, key, value, callback) {
+export async function bypassObjectEntries(obj) {
     if (Array.isArray(obj)) {
-        const result = await Promise.all(obj.map(item => bypassObjectEntries(item, key, value, callback)));
-        return result;
+        return await Promise.all(obj.map(item => bypassObjectEntries(item)));
     }
 
     if (typeof obj === 'object' && obj !== null) {
-        if (obj[key] === value) {
-            return await callback(obj);
+        const newObj = { ...obj };
+
+        if (
+            newObj.meta_data &&
+            newObj.filename &&
+            newObj.item &&
+            newObj.item.MediaConversions &&
+            newObj.item.Metadata
+        ) {
+            delete newObj.item;
         }
 
-        const result = {};
-        for (const _key of Object.keys(obj)) {
-            result[_key] = await bypassObjectEntries(obj[_key], key, value, callback);
+        for (const key of Object.keys(newObj)) {
+            newObj[key] = await bypassObjectEntries(newObj[key]);
         }
-        return result;
+
+        return newObj;
     }
 
     return obj;
