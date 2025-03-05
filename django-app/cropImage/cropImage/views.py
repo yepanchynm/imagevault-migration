@@ -12,6 +12,15 @@ import pandas as pd
 import xlsxwriter
 import os
 
+ERROR_LOG_FILE = "error_log.json"
+
+def log_error(error_data):
+    try:
+        with open(ERROR_LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(json.dumps(error_data, ensure_ascii=False) + "\n")
+    except Exception as e:
+        print(f"Cant write logs: {e}")
+
 
 def get_image_from_url(url):
     """Retrieve an image from a URL as a NumPy array."""
@@ -141,7 +150,8 @@ def check_crop(request):
             return JsonResponse({"x1": x1, "y1": y1, "x2": x2, "y2": y2})
 
         except Exception as e:
-            raise e
+            error_data = {"error": str(e), "data": data if 'data' in locals() else "No data"}
+            log_error(error_data)
             return JsonResponse({"error": str(e)}, status=500)
 
 

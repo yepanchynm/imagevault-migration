@@ -9,17 +9,15 @@ import { ChangeComponentSchemaService } from "./changeComponentSchemaService.js"
 import { restoreStoriesFromFile, restoreComponentsFromFile } from './helpers/restore.js';
 import {configService} from "./configService.js";
 
-const WORKING_STORY_SLUGS = [
-    'en/investor/demos/brights/migration-test-page',
-    // 'zh/main/demos/brights/migration-test-page',
-    // 'ja/main/demos/brights/migration-test-page',
-    // 'sv/investor/demos/brights/migration-test-page',
-    // 'en/main/demos/brights/migration-test-page'
-];
+// const WORKING_STORY_SLUGS = [
+//     'en/investor/demos/brights/migration-test-page',
+//     // 'zh/main/demos/brights/migration-test-page',
+//     // 'ja/main/demos/brights/migration-test-page',
+//     // 'sv/investor/demos/brights/migration-test-page',
+//     // 'en/main/demos/brights/migration-test-page'
+// ];
 
-const DATA_FOR_EXCEL = {};
-
-const COMPONENTS_NAMES_WHITELIST = ['imagevaultMigration']
+const COMPONENTS_NAMES_WHITELIST = []
 export const IMAGEVAULT_PLUGIN_NAME = 'image-vault';
 
 const getDataFolderPath = () => {
@@ -86,6 +84,8 @@ const processImageVaultUrls = async (toReplace, imageVaultService) => {
             
             const altText = imageVaultImageData.metadata.find(item => item.definitionId === 1082);
 
+            console.log('[DATA FOR UPDATE COLLECTED]')
+
             for (const category of categories) {
                 let tag = storyblokTags?.find(tag => tag.name.toLowerCase() === category.name.toLowerCase());
                 if (!tag) {
@@ -96,16 +96,18 @@ const processImageVaultUrls = async (toReplace, imageVaultService) => {
                 if (tag?.id) assetTags.push(tag.id);
             }
 
+            console.log('[DATA FOR UPDATE', storyblokData.id, { asset: { 
+                internal_tag_ids: assetTags,
+                title: altText?.value,
+                alt: altText?.value
+            } })
+
             await storyblokService.updateAsset(storyblokData.id, { asset: { 
                 internal_tag_ids: assetTags,
                 title: altText?.value,
                 alt: altText?.value
             } });
-            console.log('[UPDATE ASSET]', storyblokData.id, { asset: { 
-                internal_tag_ids: assetTags,
-                title: altText?.value,
-                alt: altText?.value
-            } })
+            console.log('[ASSET UPDATED]')
 
         } catch (error) {
             console.error(`Failed to process URL ${url}:`, error.message);
@@ -162,12 +164,12 @@ const updateImageVaultComponents = async (componentsWithImageVault) => {
     }
 };
 
-const updateStory = async (storySlug, dataForExcel) => {
+const updateStory = async (storyData) => {
     const imageVaultService = new ImageVaultService();
-
-    const storyData = await storyblokService.getStoryBySlug(storySlug);
+    const storySlug = storyData.full_slug;
+    // const storyData = await storyblokService.getStoryBySlug(storySlug);
     const filenamePrefix=  storySlug.replace(/\//g, '-')
-    await saveToFile(filenamePrefix, storyData, 'before');
+    await saveToFile(filenamePrefix, storyData, 'republish');
 
     const toReplace = await imageVaultService.getImageVaultUrls(storyData);
     const replacesUrls = await processImageVaultUrls(toReplace, imageVaultService);
@@ -178,26 +180,22 @@ const updateStory = async (storySlug, dataForExcel) => {
 
     await saveToFile(`${filenamePrefix}`, updatedStoryData, 'after');
 
-    if (updatedStoryData.id && updatedStoryData.full_slug) {
-        const isPublished = await storyblokService.isStoryPublished(updatedStoryData.full_slug);
-        const response = await storyblokService.updateStory(
-            updatedStoryData.id,
-            updatedStoryData,
-            {
-                force_update: 1,
-                ...( isPublished ? { publish: 1 } : {} )
-            }
-        );
-
-        if (response.status === 200) {
-            DATA_FOR_EXCEL[`${updatedStoryData.full_slug}`] = replaceStoryService.getReplacements()
-            if ( isPublished ) {
-                console.log(`Story ${updatedStoryData.id} updated and publish successfully`);
+    if (storyData.id && storyData.full_slug) {
+        const isPublished = await storyblokService.isStoryPublished(storyData.full_slug);
+        if (isPublished) {
+            const response = await storyblokService.updateStory(
+                storyData.id,
+                storyData,
+                {
+                    // force_update: 1,
+                    publish: 1
+                }
+            );
+            if (response?.status === 200) {
+                console.log(`Story ${storyData.id} updated and publish successfully`);
             } else {
-                console.log(`Story ${updatedStoryData.id} updated but NOT published successfully`);
+                console.log(`Failed to update story ID ${storyData.id}`);
             }
-        } else {
-            console.log(`Failed to update story ID ${updatedStoryData.id}`);
         }
     }
 }
@@ -224,16 +222,14 @@ const bootstrap = async () => {
             const components = JSON.parse(restoredComponents);
             await restoreComponentsFromFile(components);
             return
-        } else {
-            const dataBeforeUpdate = await storyblokService.getAllStories();
-            await saveToFile('data-to-update', dataBeforeUpdate);
         }
 
-        for (const slug of WORKING_STORY_SLUGS) {
-            await updateStory(slug);
-        }
+        const dataBeforeUpdate = await storyblokService.getAllStories();
+        await saveToFile('data-to-update', dataBeforeUpdate);
 
-        await saveToFile('data-for-excel', DATA_FOR_EXCEL);
+        for (const story of dataBeforeUpdate) {
+            await updateStory(story);
+        }
 
         const components = await storyblokService.getComponentsList();
         if (!components?.components) return;

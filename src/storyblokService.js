@@ -12,12 +12,11 @@ class StoryblokService {
     async getAllStories () {
         console.log('Starting saving all stories...');
         const perPage = 25;
-        let params = {
-            per_page: perPage,
-            page: 1
-        };
+        let page = 1;
+
+        let url = `/stories?version=draft&per_page=${perPage}&page=${page}`
         
-        const firstResponse = await getInstance.get("/stories?version=draft", params);
+        const firstResponse = await getInstance.get(url);
 
         const total = firstResponse.headers['total'];
 
@@ -27,8 +26,9 @@ class StoryblokService {
 
         let otherStories = [];
         for (let currentPage = 2; currentPage <= lastPage; currentPage++) {
-            params.page = currentPage;
-            const res =  await getInstance.get("/stories?version=draft", params);
+            page = currentPage;
+            url = `/stories?version=draft&per_page=${perPage}&page=${page}`
+            const res =  await getInstance.get(url);
             otherStories.push(res.data.stories);
         }
 
@@ -58,7 +58,7 @@ class StoryblokService {
         if (
             newData.full_slug === 'en/investor/newsroom/press-kit-media-assets' ||
             newData.full_slug === 'sv/investor/media/mediabank'
-        ) { return }
+        ) { return { status: 500 } }
         return await updateInstance.put(`/stories/${storyId}`, {
             story: newData,
             ...opts
@@ -70,7 +70,7 @@ class StoryblokService {
     }
 
     async getTags() {
-        const response = await updateInstance.get('/internal_tags')
+        const response = await updateInstance.get('/internal_tags?per_page=1000')
 
         return response.data.internal_tags;
     }
