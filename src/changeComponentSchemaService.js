@@ -6,18 +6,25 @@ export class ChangeComponentSchemaService {
     #result;
 
     constructor(schema) {
-        if (!schema) {
-            this.#schema = {};
-        }
-        this.#schema = schema;
+        this.#schema = schema || {};
     }
 
     async replace() {
-        this.#result = await bypassObjectEntries(this.#schema, async (item, result) => {
-            if (item.type === MARKDOWN_PLUGIN_NAME) {
-                result.type = "richtext";
+        this.#result = {};
+
+        for (const [key, value] of Object.entries(this.#schema)) {
+            this.#result[key] = value;
+
+            if (value.type === MARKDOWN_PLUGIN_NAME) {
+                const newKey = `${key}_richtext`;
+
+                this.#result[newKey] = {
+                    ...value,
+                    type: "richtext",
+                };
             }
-        });
+        }
+
         return this;
     }
 

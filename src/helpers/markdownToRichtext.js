@@ -119,7 +119,6 @@ const { richTextFromMarkdown } = pkg;
 
 export async function markdownToRichtext(markdown) {
     const richText = await richTextFromMarkdown(markdown);
-    console.log(richText)
 
     return richText;
 }

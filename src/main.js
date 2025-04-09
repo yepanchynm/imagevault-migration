@@ -5,6 +5,7 @@ import { ReplaceService } from "./replaceService.js";
 import { fileURLToPath } from 'url';
 import { restoreStoriesFromFile, restoreComponentsFromFile } from './helpers/restore.js';
 import { ChangeComponentSchemaService } from "./changeComponentSchemaService.js"
+import { getComponentMapWithMarkdownFields } from "./helpers/getComponentMapWithMarkdownFields.js"
 
 const COMPONENTS_NAMES_WHITELIST = []
 export const EDITORIAL_MARKDOWN_PLUGIN_NAME = 'editorialMarkdown';
@@ -38,7 +39,7 @@ const saveToFile = async (filename, data, folder = '') => {
 
 const processComponents = async (components) => {
     const componentsWithMarkdown = components.filter(item =>
-        Object.keys(item.schema).some(key => key === MARKDOWN_PLUGIN_NAME || key === EDITORIAL_MARKDOWN_PLUGIN_NAME)
+        Object.values(item.schema).some(key => key.type === MARKDOWN_PLUGIN_NAME || key.type === EDITORIAL_MARKDOWN_PLUGIN_NAME)
     );
 
     const componentsWithMarkdownNames = componentsWithMarkdown.map(comp => comp.name);
@@ -76,12 +77,12 @@ const updateMarkdownComponents = async (componentsWithMarkdown) => {
     }
 };
 
-const updateStory = async (storyData) => {
+const updateStory = async (storyData, componentMap) => {
     const storySlug = storyData.full_slug;
     const filenamePrefix=  storySlug.replace(/\//g, '-')
     await saveToFile(filenamePrefix, storyData, 'before');
 
-    const replaceStoryService = new ReplaceService(storyData);
+    const replaceStoryService = new ReplaceService(storyData, componentMap);
     await replaceStoryService.replace();
     const updatedStoryData = replaceStoryService.get();
 
@@ -117,27 +118,6 @@ const getComponentsToUpdate = (components) => {
 // Main bootstrap function
 const bootstrap = async () => {
     try {
-        // const restore = configService.get('RESTORE') || 'false';
-
-        // if (restore === 'true') {
-        //     console.log('Starting restoring...')
-        //     const restoreData = await fs.readFile(getStoryFilename('data-to-update'));
-        //     const stories = JSON.parse(restoreData);
-        //     await restoreStoriesFromFile(stories);
-            
-        //     const restoredComponents = await fs.readFile(getStoryFilename('components-to-update'));
-        //     const components = JSON.parse(restoredComponents);
-        //     await restoreComponentsFromFile(components);
-        //     return
-        // }
-
-        const dataBeforeUpdate = await storyblokService.getAllStories();
-        await saveToFile('data-to-update', dataBeforeUpdate);
-
-        for (const story of dataBeforeUpdate) {
-            await updateStory(story);
-        }
-
         const components = await storyblokService.getComponentsList();
         if (!components?.components) return;
 
@@ -156,6 +136,28 @@ const bootstrap = async () => {
         const componentsToUpdate = getComponentsToUpdate(componentsWithMarkdown)
         await updateMarkdownComponents(componentsToUpdate);
         await saveToFile('components-to-update', componentsToUpdate);
+
+        const componentMap = getComponentMapWithMarkdownFields(componentsWithMarkdown);
+        // const restore = configService.get('RESTORE') || 'false';
+
+        // if (restore === 'true') {
+        //     console.log('Starting restoring...')
+        //     const restoreData = await fs.readFile(getStoryFilename('data-to-update'));
+        //     const stories = JSON.parse(restoreData);
+        //     await restoreStoriesFromFile(stories);
+            
+        //     const restoredComponents = await fs.readFile(getStoryFilename('components-to-update'));
+        //     const components = JSON.parse(restoredComponents);
+        //     await restoreComponentsFromFile(components);
+        //     return
+        // }
+
+        const dataBeforeUpdate = await storyblokService.getAllStories();
+        await saveToFile('data-to-update', dataBeforeUpdate);
+
+        for (const story of dataBeforeUpdate) {
+            await updateStory(story, componentMap);
+        }
     } catch (err) {
         console.error('Error in bootstrap:', err);
     }

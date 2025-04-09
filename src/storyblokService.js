@@ -9,7 +9,7 @@ class StoryblokService {
 
     async getAllStories () {
         console.log('Starting saving all stories...');
-        const perPage = 25;
+        const perPage = 100;
         let page = 1;
 
         let url = `/stories?version=draft&per_page=${perPage}&page=${page}`
