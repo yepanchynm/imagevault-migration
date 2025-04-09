@@ -24,6 +24,13 @@ export class ReplaceService {
                     }
                 }
             }
+
+            if (original.seoMeta) {
+                const { title, description } = original.seoMeta;                
+        
+                if (title) modified?.seoMeta['SeoTitle'] = title;
+                if (description) modified?.seoMeta['SeoDescription'] = description;
+            }
         });
 
         this.#result = this.#storyData;
