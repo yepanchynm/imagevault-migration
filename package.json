@@ -16,6 +16,9 @@
     "express": "^4.21.2",
     "jsdom": "^26.0.0",
     "markdown-it": "^14.1.0",
+    "pixelmatch": "^7.1.0",
+    "playwright": "^1.51.1",
+    "pngjs": "^7.0.0",
     "prosemirror-model": "^1.25.0",
     "storyblok-js-client": "^6.10.3",
     "turndown": "^7.2.0"

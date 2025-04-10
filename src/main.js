@@ -6,11 +6,11 @@ import { fileURLToPath } from 'url';
 import { restoreStoriesFromFile, restoreComponentsFromFile } from './helpers/restore.js';
 import { ChangeComponentSchemaService } from "./changeComponentSchemaService.js"
 import { getComponentMapWithMarkdownFields } from "./helpers/getComponentMapWithMarkdownFields.js"
+import {ScreenshotService} from "./screenshotService.js";
 
 const COMPONENTS_NAMES_WHITELIST = []
 export const EDITORIAL_MARKDOWN_PLUGIN_NAME = 'editorialMarkdown';
 export const MARKDOWN_PLUGIN_NAME = 'markdown';
-
 
 const getDataFolderPath = () => {
     const __dirname = fileURLToPath(import.meta.url).replace(/\/[^\/]*$/, '');
@@ -183,7 +183,26 @@ const bootstrap = async () => {
         await saveToFile('data-to-update', dataBeforeUpdate);
 
         for (const story of dataBeforeUpdate) {
+            const screenshotService = new ScreenshotService(
+                story.uuid,
+                `https://tobiiweb-dev.azurewebsites.net/${story.full_slug}`
+            )
+            await screenshotService.take('before')
+
             await updateStory(story, componentMap);
+
+            await screenshotService.take('after')
+
+            try {
+                await screenshotService.compare()
+            } catch (err) {
+                console.error(err.message);
+                console.log('Rolling back migration...');
+
+                // @TODO Add rollback
+
+                process.exit(1);
+            }
         }
     } catch (err) {
         console.error('Error in bootstrap:', err);
