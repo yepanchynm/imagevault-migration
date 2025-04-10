@@ -77,6 +77,31 @@ const updateMarkdownComponents = async (componentsWithMarkdown) => {
     }
 };
 
+const updatePageComponents = async (components) => {
+    for (const component of components) {
+        const componentData = await storyblokService.getComponentById(component.id);
+        if (!componentData?.component?.schema || !componentData?.component?.is_root) continue;
+        componentData.component.schema['SeoTitle'] = {
+            type: 'text',
+            translatable: true
+        };
+
+        componentData.component.schema['SeoDescription'] = {
+            type: 'textarea',
+            translatable: true
+        };
+
+        await saveToFile(`${component.name}-root-replaced`, componentData, 'components');
+
+        // const updateResponse = await storyblokService.updateComponentById(component.id, componentData);
+        // if (updateResponse.status === 200) {
+        //     console.log(`${component.id} (${component.name}) updated successfully`);
+        // } else {
+        //     console.log(`Failed to update component ID ${component.id} (${component.name})`);
+        // }
+    }
+};
+
 const updateStory = async (storyData, componentMap) => {
     const storySlug = storyData.full_slug;
     const filenamePrefix=  storySlug.replace(/\//g, '-')
@@ -122,6 +147,8 @@ const bootstrap = async () => {
         if (!components?.components) return;
 
         await saveToFile('components', components, 'components');
+
+        await updatePageComponents(components.components);
 
         const {
             componentsWithMarkdown,
