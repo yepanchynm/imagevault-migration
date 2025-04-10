@@ -6,8 +6,9 @@ import { fileURLToPath } from 'url';
 import { restoreStoriesFromFile, restoreComponentsFromFile } from './helpers/restore.js';
 import { ChangeComponentSchemaService } from "./changeComponentSchemaService.js"
 import { getComponentMapWithMarkdownFields } from "./helpers/getComponentMapWithMarkdownFields.js"
-import {ScreenshotService} from "./screenshotService.js";
-import {chromium} from "playwright";
+import { ScreenshotService } from "./screenshotService.js";
+import { chromium } from "playwright";
+import {configService} from "./configService.js";
 
 const COMPONENTS_NAMES_WHITELIST = []
 export const EDITORIAL_MARKDOWN_PLUGIN_NAME = 'editorialMarkdown';
@@ -189,7 +190,7 @@ const bootstrap = async () => {
         for (const story of dataBeforeUpdate) {
             const screenshotService = new ScreenshotService(
                 story.uuid,
-                `https://tobiiweb-dev.azurewebsites.net/${story.full_slug}`
+                `${configService.get('PREVIEW_URL') || 'https://tobiiweb-preview.azurewebsites.net/'}/${story.full_slug}`
             )
             await screenshotService.take(page, 'before')
 
