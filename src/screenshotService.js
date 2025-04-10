@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export class ScreenshotService {
-    constructor(uuid, url, outputDir = '../data/snapshots', pixelDiffThreshold = -1) {
+    constructor(uuid, url, outputDir = '../data/snapshots', pixelDiffThreshold = 10) {
         this.url = url;
         this.uuid = uuid;
         this.outputDir = path.resolve(__dirname, outputDir);
