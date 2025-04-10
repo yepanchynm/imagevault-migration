@@ -199,8 +199,24 @@ const bootstrap = async () => {
                 console.error(err.message);
                 console.log('Rolling back migration...');
 
-                // @TODO Add rollback
-
+                const isPublished = await storyblokService.isStoryPublished(story.full_slug);
+                const response = await storyblokService.updateStory(
+                    story.id,
+                    story,
+                    {
+                        force_update: 1,
+                        ...( isPublished ? { publish: 1 } : {} )
+                    }
+                );
+                if (response?.status === 200) {
+                    if ( isPublished ) {
+                        console.log(`Story ${story.id} updated and publish successfully`);
+                    } else {
+                        console.log(`Story ${story.id} updated but NOT published successfully`);
+                    }
+                } else {
+                    console.log(`Failed to update story ID ${story.id}`);
+                }
                 process.exit(1);
             }
         }
