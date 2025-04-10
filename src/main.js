@@ -7,6 +7,7 @@ import { restoreStoriesFromFile, restoreComponentsFromFile } from './helpers/res
 import { ChangeComponentSchemaService } from "./changeComponentSchemaService.js"
 import { getComponentMapWithMarkdownFields } from "./helpers/getComponentMapWithMarkdownFields.js"
 import {ScreenshotService} from "./screenshotService.js";
+import {chromium} from "playwright";
 
 const COMPONENTS_NAMES_WHITELIST = []
 export const EDITORIAL_MARKDOWN_PLUGIN_NAME = 'editorialMarkdown';
@@ -179,6 +180,9 @@ const bootstrap = async () => {
         //     return
         // }
 
+        const browser = await chromium.launch();
+        const page = await browser.newPage();
+
         const dataBeforeUpdate = await storyblokService.getAllStories();
         await saveToFile('data-to-update', dataBeforeUpdate);
 
@@ -187,11 +191,11 @@ const bootstrap = async () => {
                 story.uuid,
                 `https://tobiiweb-dev.azurewebsites.net/${story.full_slug}`
             )
-            await screenshotService.take('before')
+            await screenshotService.take(page, 'before')
 
             await updateStory(story, componentMap);
 
-            await screenshotService.take('after')
+            await screenshotService.take(page, 'after')
 
             try {
                 await screenshotService.compare()

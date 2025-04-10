@@ -1,4 +1,3 @@
-import { chromium } from 'playwright';
 import { PNG } from 'pngjs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -25,18 +24,24 @@ export class ScreenshotService {
         }
     }
 
-    async take(name = 'before') {
-        const browser = await chromium.launch();
-        const page = await browser.newPage();
+    async take(page, name = 'before') {
+        if (
+            !page ||
+            typeof page.goto !== 'function' ||
+            typeof page.screenshot !== 'function'
+        ) {
+            throw new Error(
+                'Invalid `page` object passed to ScreenshotService. Make sure to pass a Playwright Page instance.'
+            );
+        }
+
+        const filePath = name === 'before' ? this.beforePath : this.afterPath;
 
         await page.goto(this.url);
         await page.waitForLoadState('networkidle');
-
-        const filePath = name === 'before' ? this.beforePath : this.afterPath;
         await page.screenshot({ path: filePath, fullPage: true });
 
-        await browser.close();
-        console.log(`✅ Screenshot taken: ${name} (${this.url})`);
+        console.log(`Screenshot saved: ${filePath}`);
     }
 
     async compare() {
