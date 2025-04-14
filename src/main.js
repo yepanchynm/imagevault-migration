@@ -181,49 +181,48 @@ const bootstrap = async () => {
         //     return
         // }
 
-        const browser = await chromium.launch();
-        const page = await browser.newPage();
+        // const browser = await chromium.launch();
+        // const page = await browser.newPage();
 
         const dataBeforeUpdate = await storyblokService.getAllStories();
         await saveToFile('data-to-update', dataBeforeUpdate);
 
         for (const story of dataBeforeUpdate) {
-            const screenshotService = new ScreenshotService(
-                story.uuid,
-                `${configService.get('PREVIEW_URL') || 'https://tobiiweb-preview.azurewebsites.net/'}/${story.full_slug}`
-            )
-            await screenshotService.take(page, 'before')
-
+            // const screenshotService = new ScreenshotService(
+            //     story.uuid,
+            //     `${configService.get('PREVIEW_URL') || 'https://tobiiweb-preview.azurewebsites.net/'}/${story.full_slug}`
+            // )
+            // await screenshotService.take(page, 'before')
             await updateStory(story, componentMap);
 
-            await screenshotService.take(page, 'after')
+            // await screenshotService.take(page, 'after')
 
-            try {
-                await screenshotService.compare()
-            } catch (err) {
-                console.error(err.message);
-                console.log('Rolling back migration...');
+            // try {
+            //     await screenshotService.compare()
+            // } catch (err) {
+            //     console.error(err.message);
+            //     console.log('Rolling back migration...');
 
-                const isPublished = await storyblokService.isStoryPublished(story.full_slug);
-                const response = await storyblokService.updateStory(
-                    story.id,
-                    story,
-                    {
-                        force_update: 1,
-                        ...( isPublished ? { publish: 1 } : {} )
-                    }
-                );
-                if (response?.status === 200) {
-                    if ( isPublished ) {
-                        console.log(`Story ${story.id} updated and publish successfully`);
-                    } else {
-                        console.log(`Story ${story.id} updated but NOT published successfully`);
-                    }
-                } else {
-                    console.log(`Failed to update story ID ${story.id}`);
-                }
-                process.exit(1);
-            }
+            //     const isPublished = await storyblokService.isStoryPublished(story.full_slug);
+            //     const response = await storyblokService.updateStory(
+            //         story.id,
+            //         story,
+            //         {
+            //             force_update: 1,
+            //             ...( isPublished ? { publish: 1 } : {} )
+            //         }
+            //     );
+            //     if (response?.status === 200) {
+            //         if ( isPublished ) {
+            //             console.log(`Story ${story.id} updated and publish successfully`);
+            //         } else {
+            //             console.log(`Story ${story.id} updated but NOT published successfully`);
+            //         }
+            //     } else {
+            //         console.log(`Failed to update story ID ${story.id}`);
+            //     }
+            //     process.exit(1);
+            // }
         }
     } catch (err) {
         console.error('Error in bootstrap:', err);

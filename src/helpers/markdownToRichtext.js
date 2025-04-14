@@ -114,11 +114,76 @@
 //     return htmlToRichtext(htmlContent);
 // }
 
-import pkg from '@contentful/rich-text-from-markdown';
-const { richTextFromMarkdown } = pkg;
+// import pkg from '@contentful/rich-text-from-markdown';
+// const { richTextFromMarkdown } = pkg;
 
-export async function markdownToRichtext(markdown) {
-    const richText = await richTextFromMarkdown(markdown);
+// export async function markdownToRichtext(markdown) {
+//     const richText = await richTextFromMarkdown(markdown);
 
-    return richText;
+//     return richText;
+// }
+import MarkdownIt from 'markdown-it';
+
+export function markdownToStoryblokRichtext(markdown) {
+  const md = new MarkdownIt();
+  const tokens = md.parse(markdown, {});
+  const richText = {
+    type: 'doc',
+    content: [],
+  };
+
+  let currentList = null;
+
+  tokens.forEach((token, idx) => {
+    if (token.type === 'bullet_list_open') {
+      currentList = {
+        type: 'bullet_list',
+        content: [],
+      };
+    } else if (token.type === 'list_item_open') {
+      const listItem = {
+        type: 'list_item',
+        content: [],
+      };
+      const nextToken = tokens[idx + 2]; // assuming paragraph is next
+      if (nextToken.type === 'inline') {
+        const textNodes = parseInlineTokens(nextToken.children);
+        listItem.content.push({
+          type: 'paragraph',
+          content: textNodes,
+        });
+      }
+      currentList?.content.push(listItem);
+    } else if (token.type === 'bullet_list_close') {
+      richText.content.push(currentList);
+      currentList = null;
+    }
+  });
+
+  return richText;
 }
+
+function parseInlineTokens(inlineTokens) {
+  const result = [];
+  let marks = [];
+
+  inlineTokens.forEach(token => {
+    if (token.type === 'text') {
+      result.push({ type: 'text', text: token.content, ...(marks.length ? { marks: [...marks] } : {}) });
+    } else if (token.type === 'strong_open') {
+      marks.push({ type: 'bold' });
+    } else if (token.type === 'strong_close') {
+      marks = marks.filter(mark => mark.type !== 'bold');
+    } else if (token.type === 'em_open') {
+      marks.push({ type: 'italic' });
+    } else if (token.type === 'em_close') {
+      marks = marks.filter(mark => mark.type !== 'italic');
+    }
+  });
+
+  return result;
+}
+
+import { promises as fs, existsSync, mkdirSync } from 'fs';
+fs.writeFile('test.json', JSON.stringify(markdownToStoryblokRichtext('- 16 **illuminators** and four eye cameras integrated into ***scratch-resistant*** lenses \n\n- Scene camera with a 106° field of view \n\n- Built-in microphone captures environmental sound for more context \n\n- Robust design that fits under headwear and protective gear \n\n- Optional lens accessories for sun and dust protection, eyesight correction, and reflective markers for motion capture compatibility')))
+

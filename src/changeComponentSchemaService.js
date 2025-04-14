@@ -16,7 +16,7 @@ export class ChangeComponentSchemaService {
             this.#result[key] = value;
 
             if (value.type === MARKDOWN_PLUGIN_NAME) {
-                const newKey = `${key}_richtext`;
+                const newKey = `${key}`;
 
                 this.#result[newKey] = {
                     ...value,
