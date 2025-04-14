@@ -34,8 +34,8 @@ export class ReplaceService {
             if (original.seoMeta) {
                 const { title, description } = original.seoMeta;                
         
-                if (title) modified['SeoTitle'] = title;
-                if (description) modified['SeoDescription'] = description;
+                modified['seoTitle'] = title || "";
+                modified['seoDescription'] = description || "";
             }
         });
 

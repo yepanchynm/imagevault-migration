@@ -10,9 +10,14 @@ import { ScreenshotService } from "./screenshotService.js";
 import { chromium } from "playwright";
 import {configService} from "./configService.js";
 
-export const COMPONENTS_NAMES_WHITELIST = ['RichTextMarkdown']
+export const COMPONENTS_NAMES_WHITELIST = [
+    // 'RichTextMarkdown',
+    'productPage',
+    'testComponentBlock'
+]
 const STORIES_TO_UPDATE = [
-    'en/test'
+    // 'en/test',
+    'en/main/demos/brights/rich-text-conversion-test-page'
 ]
 export const EDITORIAL_MARKDOWN_PLUGIN_NAME = 'editorialMarkdown';
 export const MARKDOWN_PLUGIN_NAME = 'markdown';
@@ -84,6 +89,7 @@ const updateMarkdownComponents = async (componentsWithMarkdown) => {
 
 const updatePageComponents = async (components) => {
     for (const component of components) {
+        if (COMPONENTS_NAMES_WHITELIST?.length > 0 && !COMPONENTS_NAMES_WHITELIST.includes(component.name)) continue;
         const componentData = await storyblokService.getComponentById(component.id);
         if (!componentData?.component?.schema || !componentData?.component?.is_root) continue;
         componentData.component.schema['SeoTitle'] = {
@@ -124,10 +130,7 @@ const updateStory = async (storyData, componentMap) => {
             const response = await storyblokService.updateStory(
                 storyData.id,
                 updatedStoryData,
-                {
-                    // force_update: 1,
-                    publish: 1
-                }
+                isPublished ? {  force_update: 1, publish: 1 } : {}
             );
             if (response?.status === 200) {
                 console.log(`Story ${storyData.id} updated and publish successfully`);
@@ -153,7 +156,7 @@ const bootstrap = async () => {
 
         await saveToFile('components', components, 'components');
 
-        await updatePageComponents(components.components);
+        // await updatePageComponents(components.components);
 
         const {
             componentsWithMarkdown,
@@ -170,19 +173,19 @@ const bootstrap = async () => {
         await saveToFile('components-to-update', componentsToUpdate);
 
         const componentMap = getComponentMapWithMarkdownFields(componentsWithMarkdown);
-        // const restore = configService.get('RESTORE') || 'false';
+        const restore = configService.get('RESTORE') || 'false';
 
-        // if (restore === 'true') {
-        //     console.log('Starting restoring...')
-        //     const restoreData = await fs.readFile(getStoryFilename('data-to-update'));
-        //     const stories = JSON.parse(restoreData);
-        //     await restoreStoriesFromFile(stories);
+        if (restore === 'true') {
+            console.log('Starting restoring...')
+            const restoreData = await fs.readFile(getStoryFilename('data-to-update'));
+            const stories = JSON.parse(restoreData);
+            await restoreStoriesFromFile(stories);
             
-        //     const restoredComponents = await fs.readFile(getStoryFilename('components-to-update'));
-        //     const components = JSON.parse(restoredComponents);
-        //     await restoreComponentsFromFile(components);
-        //     return
-        // }
+            const restoredComponents = await fs.readFile(getStoryFilename('components-to-update'));
+            const components = JSON.parse(restoredComponents);
+            await restoreComponentsFromFile(components);
+            return
+        }
 
         // const browser = await chromium.launch();
         // const page = await browser.newPage();
