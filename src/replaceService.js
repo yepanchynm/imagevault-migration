@@ -3,8 +3,6 @@ import { bypassObjectEntries } from "./helpers/bypassObjectEntries.js";
 import StoryblokMarkdownToRichtext from 'storyblok-markdown-richtext'
 import {COMPONENTS_NAMES_WHITELIST} from "./main.js";
 
-const {markdownToRichtext} = StoryblokMarkdownToRichtext
-
 export class ReplaceService {
     #storyData;
     #componentMap;
