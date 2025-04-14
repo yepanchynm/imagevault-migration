@@ -1,5 +1,8 @@
 import { bypassObjectEntries } from "./helpers/bypassObjectEntries.js";
-import { markdownToRichtext, markdownToStoryblokRichtext } from "./helpers/markdownToRichtext.js";
+// import { markdownToStoryblokRichtext } from "./helpers/markdownToRichtext.js";
+import StoryblokMarkdownToRichtext from 'storyblok-markdown-richtext'
+
+const {markdownToRichtext} = StoryblokMarkdownToRichtext
 
 export class ReplaceService {
     #storyData;
@@ -19,7 +22,7 @@ export class ReplaceService {
             if (Array.isArray(markdownFields)) {
                 for (const field of markdownFields) {
                     if (original[field]) {
-                        const richText = markdownToStoryblokRichtext(original[field]);
+                        const richText = StoryblokMarkdownToRichtext.markdownToRichtext(original[field]);
                         modified[field] = richText;
                     }
                 }

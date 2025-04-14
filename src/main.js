@@ -70,12 +70,12 @@ const updateMarkdownComponents = async (componentsWithMarkdown) => {
 
         await saveToFile(`${component.name}-replaced`, componentData, 'components');
 
-        // const updateResponse = await storyblokService.updateComponentById(component.id, componentData);
-        // if (updateResponse.status === 200) {
-        //     console.log(`${component.id} (${component.name}) updated successfully`);
-        // } else {
-        //     console.log(`Failed to update component ID ${component.id} (${component.name})`);
-        // }
+        const updateResponse = await storyblokService.updateComponentById(component.id, componentData);
+        if (updateResponse.status === 200) {
+            console.log(`${component.id} (${component.name}) updated successfully`);
+        } else {
+            console.log(`Failed to update component ID ${component.id} (${component.name})`);
+        }
     }
 };
 
@@ -95,12 +95,12 @@ const updatePageComponents = async (components) => {
 
         await saveToFile(`${component.name}-root-replaced`, componentData, 'components');
 
-        // const updateResponse = await storyblokService.updateComponentById(component.id, componentData);
-        // if (updateResponse.status === 200) {
-        //     console.log(`${component.id} (${component.name}) updated successfully`);
-        // } else {
-        //     console.log(`Failed to update component ID ${component.id} (${component.name})`);
-        // }
+        const updateResponse = await storyblokService.updateComponentById(component.id, componentData);
+        if (updateResponse.status === 200) {
+            console.log(`${component.id} (${component.name}) updated successfully`);
+        } else {
+            console.log(`Failed to update component ID ${component.id} (${component.name})`);
+        }
     }
 };
 
@@ -115,24 +115,24 @@ const updateStory = async (storyData, componentMap) => {
 
     await saveToFile(`${filenamePrefix}`, updatedStoryData, 'after');
 
-    // if (storyData.id && storyData.full_slug) {
-    //     const isPublished = await storyblokService.isStoryPublished(storyData.full_slug);
-    //     if (isPublished) {
-    //         const response = await storyblokService.updateStory(
-    //             storyData.id,
-    //             storyData,
-    //             {
-    //                 // force_update: 1,
-    //                 publish: 1
-    //             }
-    //         );
-    //         if (response?.status === 200) {
-    //             console.log(`Story ${storyData.id} updated and publish successfully`);
-    //         } else {
-    //             console.log(`Failed to update story ID ${storyData.id}`);
-    //         }
-    //     }
-    // }
+    if (storyData.id && storyData.full_slug) {
+        const isPublished = await storyblokService.isStoryPublished(storyData.full_slug);
+        if (isPublished) {
+            const response = await storyblokService.updateStory(
+                storyData.id,
+                updatedStoryData,
+                {
+                    // force_update: 1,
+                    publish: 1
+                }
+            );
+            if (response?.status === 200) {
+                console.log(`Story ${storyData.id} updated and publish successfully`);
+            } else {
+                console.log(`Failed to update story ID ${storyData.id}`);
+            }
+        }
+    }
 }
 
 const getComponentsToUpdate = (components) => {
