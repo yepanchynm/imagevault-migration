@@ -1,6 +1,7 @@
 import { bypassObjectEntries } from "./helpers/bypassObjectEntries.js";
 // import { markdownToStoryblokRichtext } from "./helpers/markdownToRichtext.js";
 import StoryblokMarkdownToRichtext from 'storyblok-markdown-richtext'
+import {COMPONENTS_NAMES_WHITELIST} from "./main.js";
 
 const {markdownToRichtext} = StoryblokMarkdownToRichtext
 
@@ -18,6 +19,10 @@ export class ReplaceService {
         this.#storyData = await bypassObjectEntries(this.#storyData, async (original, modified) => {
             const component = original.component;
             const markdownFields = this.#componentMap[component];
+
+            if (COMPONENTS_NAMES_WHITELIST.length > 0 && !COMPONENTS_NAMES_WHITELIST.includes(component)) {
+                return
+            }
 
             if (Array.isArray(markdownFields)) {
                 for (const field of markdownFields) {

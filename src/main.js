@@ -10,7 +10,10 @@ import { ScreenshotService } from "./screenshotService.js";
 import { chromium } from "playwright";
 import {configService} from "./configService.js";
 
-const COMPONENTS_NAMES_WHITELIST = []
+export const COMPONENTS_NAMES_WHITELIST = ['RichTextMarkdown']
+const STORIES_TO_UPDATE = [
+    'en/test'
+]
 export const EDITORIAL_MARKDOWN_PLUGIN_NAME = 'editorialMarkdown';
 export const MARKDOWN_PLUGIN_NAME = 'markdown';
 
@@ -184,7 +187,14 @@ const bootstrap = async () => {
         // const browser = await chromium.launch();
         // const page = await browser.newPage();
 
-        const dataBeforeUpdate = await storyblokService.getAllStories();
+        let dataBeforeUpdate = []
+
+        if (STORIES_TO_UPDATE?.length) {
+            dataBeforeUpdate = await Promise.all(STORIES_TO_UPDATE.map(slug => storyblokService.getStoryBySlug(slug)))
+        } else {
+            dataBeforeUpdate = await storyblokService.getAllStories();
+        }
+
         await saveToFile('data-to-update', dataBeforeUpdate);
 
         for (const story of dataBeforeUpdate) {
