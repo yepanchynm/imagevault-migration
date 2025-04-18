@@ -7,17 +7,54 @@ import { restoreStoriesFromFile, restoreComponentsFromFile } from './helpers/res
 import { ChangeComponentSchemaService } from "./changeComponentSchemaService.js"
 import { getComponentMapWithMarkdownFields } from "./helpers/getComponentMapWithMarkdownFields.js"
 import { ScreenshotService } from "./screenshotService.js";
-import { chromium } from "playwright";
 import {configService} from "./configService.js";
+import {sleep} from "./storyblokClient.js";
 
 export const COMPONENTS_NAMES_WHITELIST = [
     // 'RichTextMarkdown',
-    'productPage',
-    'testComponentBlock'
+    // 'productPage',
+    // 'testComponentBlock'
 ]
 const STORIES_TO_UPDATE = [
     // 'en/test',
-    'en/main/demos/brights/rich-text-conversion-test-page'
+    // 'en/main/demos/brights/rich-text-conversion-test-page'
+    // 'en/main/demos/brights/rich-text-conversion-test-page',
+
+    'en/main/demos/brights/markdown-richtext/page-with-contentgridslider',
+    'en/main/demos/brights/markdown-richtext/page-with-ctaform',
+    'en/main/demos/brights/markdown-richtext/page-with-herosmall',
+    'en/main/demos/brights/markdown-richtext/page-with-overlayblock',
+    'en/main/demos/brights/markdown-richtext/page-with-contentgrid',
+    'en/main/demos/brights/markdown-richtext/page-with-textandimage',
+    'en/main/demos/brights/markdown-richtext/page-with-shortfeatures',
+    'en/main/demos/brights/markdown-richtext/page-with-videocarousel',
+    'en/main/demos/brights/markdown-richtext/page-with-techspec',
+    'en/main/demos/brights/markdown-richtext/page-with-editorialmarkdown',
+    'en/main/demos/brights/markdown-richtext/page-with-columngrid',
+    'en/main/demos/brights/markdown-richtext/page-with-embed',
+    'en/main/demos/brights/markdown-richtext/page-with-columngridimageitem',
+    'en/main/demos/brights/markdown-richtext/page-with-textandvideo',
+    'en/main/demos/brights/markdown-richtext/page-with-techspecitem',
+    'en/main/demos/brights/markdown-richtext/page-with-textandimageparallax',
+    'en/main/demos/brights/markdown-richtext/page-with-techspecfootnote',
+    'en/main/demos/brights/markdown-richtext/page-with-markdown',
+    'en/main/demos/brights/markdown-richtext/page-with-gateddownloadsexpandableitem',
+    'en/main/demos/brights/markdown-richtext/page-with-columngridtextonly',
+    'en/main/demos/brights/markdown-richtext/page-with-imagecarousel',
+    'en/main/demos/brights/markdown-richtext/page-with-downloads',
+    'en/main/demos/brights/markdown-richtext/page-with-columngridtextitem',
+    'en/main/demos/brights/markdown-richtext/page-with-downloadsexpandableitem',
+    'en/main/demos/brights/markdown-richtext/page-with-columngridvideoitem',
+    'en/main/demos/brights/markdown-richtext/page-with-gatedform',
+    'en/main/demos/brights/markdown-richtext/enhancing-aviation-safety-and-design-with-eye-tracking',
+    'en/main/demos/brights/markdown-richtext/the-future-of-eye-tracking-in-workforce-development',
+    'en/main/demos/brights/markdown-richtext/blinks-a-hidden-gem-in-eye-tracking-research',
+    'en/main/demos/brights/markdown-richtext/improving-thoracoscopic-surgery-training-with-eye-tracking',
+    'en/main/demos/brights/markdown-richtext/studying-the-beauty-of-hair-with-eye-tracking',
+    'en/main/demos/brights/markdown-richtext/transforming-autism-social-skills-training-with-eye-tracking-ja',
+    'en/main/demos/brights/markdown-richtext/transforming-autism-social-skills-training-with-eye-tracking',
+    'en/main/demos/brights/markdown-richtext/transportation-services',
+    'en/main/demos/brights/markdown-richtext/a-practical-introduction-to-eye-tracking',
 ]
 export const EDITORIAL_MARKDOWN_PLUGIN_NAME = 'editorialMarkdown';
 export const MARKDOWN_PLUGIN_NAME = 'markdown';
@@ -78,12 +115,12 @@ const updateMarkdownComponents = async (componentsWithMarkdown) => {
 
         await saveToFile(`${component.name}-replaced`, componentData, 'components');
 
-        const updateResponse = await storyblokService.updateComponentById(component.id, componentData);
-        if (updateResponse.status === 200) {
-            console.log(`${component.id} (${component.name}) updated successfully`);
-        } else {
-            console.log(`Failed to update component ID ${component.id} (${component.name})`);
-        }
+        // const updateResponse = await storyblokService.updateComponentById(component.id, componentData);
+        // if (updateResponse.status === 200) {
+        //     console.log(`${component.id} (${component.name}) updated successfully`);
+        // } else {
+        //     console.log(`Failed to update component ID ${component.id} (${component.name})`);
+        // }
     }
 };
 
@@ -104,12 +141,12 @@ const updatePageComponents = async (components) => {
 
         await saveToFile(`${component.name}-root-replaced`, componentData, 'components');
 
-        const updateResponse = await storyblokService.updateComponentById(component.id, componentData);
-        if (updateResponse.status === 200) {
-            console.log(`${component.id} (${component.name}) updated successfully`);
-        } else {
-            console.log(`Failed to update component ID ${component.id} (${component.name})`);
-        }
+        // const updateResponse = await storyblokService.updateComponentById(component.id, componentData);
+        // if (updateResponse.status === 200) {
+        //     console.log(`${component.id} (${component.name}) updated successfully`);
+        // } else {
+        //     console.log(`Failed to update component ID ${component.id} (${component.name})`);
+        // }
     }
 };
 
@@ -187,9 +224,6 @@ const bootstrap = async () => {
             return
         }
 
-        // const browser = await chromium.launch();
-        // const page = await browser.newPage();
-
         let dataBeforeUpdate = []
 
         if (STORIES_TO_UPDATE?.length) {
@@ -201,41 +235,44 @@ const bootstrap = async () => {
         await saveToFile('data-to-update', dataBeforeUpdate);
 
         for (const story of dataBeforeUpdate) {
-            // const screenshotService = new ScreenshotService(
-            //     story.uuid,
-            //     `${configService.get('PREVIEW_URL') || 'https://tobiiweb-preview.azurewebsites.net/'}/${story.full_slug}`
-            // )
-            // await screenshotService.take(page, 'before')
+            const screenshotService = new ScreenshotService(
+                story.uuid,
+                `${configService.get('PREVIEW_URL') || 'https://tobiiweb-preview.azurewebsites.net/'}/${story.full_slug}`
+            )
+
+            await screenshotService.take('before');
             await updateStory(story, componentMap);
 
-            // await screenshotService.take(page, 'after')
+            await sleep(7000)
 
-            // try {
-            //     await screenshotService.compare()
-            // } catch (err) {
-            //     console.error(err.message);
-            //     console.log('Rolling back migration...');
+            await screenshotService.take('after');
 
-            //     const isPublished = await storyblokService.isStoryPublished(story.full_slug);
-            //     const response = await storyblokService.updateStory(
-            //         story.id,
-            //         story,
-            //         {
-            //             force_update: 1,
-            //             ...( isPublished ? { publish: 1 } : {} )
-            //         }
-            //     );
-            //     if (response?.status === 200) {
-            //         if ( isPublished ) {
-            //             console.log(`Story ${story.id} updated and publish successfully`);
-            //         } else {
-            //             console.log(`Story ${story.id} updated but NOT published successfully`);
-            //         }
-            //     } else {
-            //         console.log(`Failed to update story ID ${story.id}`);
-            //     }
-            //     process.exit(1);
-            // }
+            try {
+                await screenshotService.compare()
+            } catch (err) {
+                console.error(err.message);
+                console.log('Rolling back migration...');
+
+                const isPublished = await storyblokService.isStoryPublished(story.full_slug);
+                const response = await storyblokService.updateStory(
+                    story.id,
+                    story,
+                    {
+                        force_update: 1,
+                        ...( isPublished ? { publish: 1 } : {} )
+                    }
+                );
+                if (response?.status === 200) {
+                    if ( isPublished ) {
+                        console.log(`Story ${story.id} updated and publish successfully`);
+                    } else {
+                        console.log(`Story ${story.id} updated but NOT published successfully`);
+                    }
+                } else {
+                    console.log(`Failed to update story ID ${story.id}`);
+                }
+                process.exit(1);
+            }
         }
     } catch (err) {
         console.error('Error in bootstrap:', err);

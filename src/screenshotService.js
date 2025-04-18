@@ -5,6 +5,8 @@ import { ask } from "./helpers/cli.js";
 import pixelmatch from 'pixelmatch';
 import fs from 'fs';
 import path from 'path';
+import {sleep} from "./storyblokClient.js";
+import {chromium, firefox} from "playwright";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -24,22 +26,31 @@ export class ScreenshotService {
         }
     }
 
-    async take(page, name = 'before') {
-        if (
-            !page ||
-            typeof page.goto !== 'function' ||
-            typeof page.screenshot !== 'function'
-        ) {
-            throw new Error(
-                'Invalid `page` object passed to ScreenshotService. Make sure to pass a Playwright Page instance.'
-            );
-        }
+    async take(name = 'before') {
+        const browser = await chromium.launch();
+        const context = await browser.newContext();
+        const page = await context.newPage();
+
+        await page.route('**/*', route => {
+            route.continue({
+                headers: {
+                    ...route.request().headers(),
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache',
+                }
+            });
+        });
 
         const filePath = name === 'before' ? this.beforePath : this.afterPath;
+        const timestamp = Date.now();
 
-        await page.goto(this.url);
-        await page.waitForLoadState('networkidle');
+        await page.goto(this.url + `?t=${name}&_=${timestamp}`, { waitUntil: 'networkidle' });
+        await page.reload({ waitUntil: 'networkidle' });
         await page.screenshot({ path: filePath, fullPage: true });
+
+        await page.close();
+        await context.close();
+        await browser.close();
 
         console.log(`Screenshot saved: ${filePath}`);
     }
@@ -53,14 +64,20 @@ export class ScreenshotService {
 
         const diff = new PNG({ width, height });
 
-        const diffPixels = pixelmatch(
-            imgBefore.data,
-            imgAfter.data,
-            diff.data,
-            width,
-            height,
-            { threshold: 0.1 }
-        );
+        let diffPixels = -1;
+
+        try {
+            diffPixels = pixelmatch(
+                imgBefore.data,
+                imgAfter.data,
+                diff.data,
+                width,
+                height,
+                { threshold: 0.1 }
+            );
+        } catch(e) {
+            console.log(e.message)
+        }
 
         const diffDir = path.dirname(this.diffPath);
         if (!fs.existsSync(diffDir)) {
@@ -72,7 +89,7 @@ export class ScreenshotService {
         console.log(`Visual difference saved to: ${this.diffPath}`);
         console.log(`${diffPixels} pixels differ between snapshots.`);
 
-        if (diffPixels > this.pixelDiffThreshold) {
+        if (diffPixels > this.pixelDiffThreshold || diffPixels < 0) {
             console.log(`\nPlease manually review the diff image: ${this.diffPath}`);
             const answer = await ask('\nContinue anyway? (yes/no): ');
 

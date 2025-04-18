@@ -24,8 +24,17 @@ export class ReplaceService {
 
             if (Array.isArray(markdownFields)) {
                 for (const field of markdownFields) {
-                    if (original[field]) {
+                    if (original[field] && typeof original[field] === 'string') {
                         const richText = StoryblokMarkdownToRichtext.markdownToRichtext(original[field]);
+                        richText.content.push({
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "StimTracker provides a reliable and accurate solution to time stamp the onset of screen-based visual stimuli (images shown in Tobii Pro Lab and eye tracking data from Tobii Pro Spectrum) down to a timing accuracy of less than a millisecond. This exceptional timing accuracy benefits studies that require a high temporal resolution, such as reaction time tests and subliminal single-frame stimuli tests."
+                                }
+                            ]
+                        })
                         modified[field] = richText;
                     }
                 }

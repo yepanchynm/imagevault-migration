@@ -12,7 +12,7 @@ if (typeof spaceId === "undefined") throw new Error("spaceId missing");
 
 const delay = Math.floor(1000 / 6) + 1;
 
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+export const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const getInstance = axios.create({
     baseURL: "https://api.storyblok.com/v2/cdn",
