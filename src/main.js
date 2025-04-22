@@ -235,6 +235,10 @@ const bootstrap = async () => {
         await saveToFile('data-to-update', dataBeforeUpdate);
 
         for (const story of dataBeforeUpdate) {
+            if (story.full_slug.startsWith('es/') || story.full_slug.startsWith('de/') || story.full_slug.startsWith('fr/')) 
+            { 
+                continue
+            }
             const screenshotService = new ScreenshotService(
                 story.uuid,
                 `${configService.get('PREVIEW_URL') || 'https://tobiiweb-preview.azurewebsites.net/'}/${story.full_slug}`

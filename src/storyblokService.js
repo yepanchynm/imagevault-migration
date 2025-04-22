@@ -53,10 +53,6 @@ class StoryblokService {
     }
 
     async updateStory(storyId, newData, opts = {}) {
-        if (
-            newData.full_slug === 'en/investor/newsroom/press-kit-media-assets' ||
-            newData.full_slug === 'sv/investor/media/mediabank'
-        ) { return { status: 500 } }
         return await updateInstance.put(`/stories/${storyId}`, {
             story: newData,
             ...opts
