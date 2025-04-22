@@ -55,7 +55,7 @@ const STORIES_TO_UPDATE = [
     'en/main/demos/brights/markdown-richtext/the-future-of-eye-tracking-in-workforce-development',
     'en/main/demos/brights/markdown-richtext/transforming-autism-social-skills-training-with-eye-tracking',
     'en/main/demos/brights/markdown-richtext/transforming-autism-social-skills-training-with-eye-tracking-ja',
-    'en/main/demos/brights/markdown-richtext/transportation-services',
+    // 'en/main/demos/brights/markdown-richtext/transportation-services',
     'en/main/demos/brights/markdown-richtext/rights-issue-2024'
 ]
 export const EDITORIAL_MARKDOWN_PLUGIN_NAME = 'editorialMarkdown';
@@ -293,7 +293,7 @@ const bootstrap = async () => {
             await screenshotService.take('before');
             await updateStory(story, componentMap);
 
-            console.log(`${index} (${story.full_slug}):`);
+            console.log(`[INFO] #${index + 1} (${story.full_slug}):`);
 
             if (index < WARM_UP_COMPARING_COUNT) {
                 await sleep(TIMEOUT_BETWEEN_WARM_UP_COMPARING);
