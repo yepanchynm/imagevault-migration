@@ -5,8 +5,7 @@ import { ask } from "./helpers/cli.js";
 import pixelmatch from 'pixelmatch';
 import fs from 'fs';
 import path from 'path';
-import {sleep} from "./storyblokClient.js";
-import {chromium, firefox} from "playwright";
+import {chromium} from "playwright";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

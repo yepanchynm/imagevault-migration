@@ -20,44 +20,50 @@ const STORIES_TO_UPDATE = [
     // 'en/main/demos/brights/rich-text-conversion-test-page'
     // 'en/main/demos/brights/rich-text-conversion-test-page',
 
+    'en/main/demos/brights/markdown-richtext/a-practical-introduction-to-eye-tracking',
+    'en/main/demos/brights/markdown-richtext/blinks-a-hidden-gem-in-eye-tracking-research',
+    'en/main/demos/brights/markdown-richtext/enhancing-aviation-safety-and-design-with-eye-tracking',
+    'en/main/demos/brights/markdown-richtext/improving-thoracoscopic-surgery-training-with-eye-tracking',
+    'en/main/demos/brights/markdown-richtext/page-with-accordion-blok',
+    'en/main/demos/brights/markdown-richtext/page-with-columngrid',
+    'en/main/demos/brights/markdown-richtext/page-with-columngridimageitem',
+    'en/main/demos/brights/markdown-richtext/page-with-columngridtextitem',
+    'en/main/demos/brights/markdown-richtext/page-with-columngridtextonly',
+    'en/main/demos/brights/markdown-richtext/page-with-columngridvideoitem',
+    'en/main/demos/brights/markdown-richtext/page-with-contentgrid',
     'en/main/demos/brights/markdown-richtext/page-with-contentgridslider',
     'en/main/demos/brights/markdown-richtext/page-with-ctaform',
-    'en/main/demos/brights/markdown-richtext/page-with-herosmall',
-    'en/main/demos/brights/markdown-richtext/page-with-overlayblock',
-    'en/main/demos/brights/markdown-richtext/page-with-contentgrid',
-    'en/main/demos/brights/markdown-richtext/page-with-textandimage',
-    'en/main/demos/brights/markdown-richtext/page-with-shortfeatures',
-    'en/main/demos/brights/markdown-richtext/page-with-videocarousel',
-    'en/main/demos/brights/markdown-richtext/page-with-techspec',
-    'en/main/demos/brights/markdown-richtext/page-with-editorialmarkdown',
-    'en/main/demos/brights/markdown-richtext/page-with-columngrid',
-    'en/main/demos/brights/markdown-richtext/page-with-embed',
-    'en/main/demos/brights/markdown-richtext/page-with-columngridimageitem',
-    'en/main/demos/brights/markdown-richtext/page-with-textandvideo',
-    'en/main/demos/brights/markdown-richtext/page-with-techspecitem',
-    'en/main/demos/brights/markdown-richtext/page-with-textandimageparallax',
-    'en/main/demos/brights/markdown-richtext/page-with-techspecfootnote',
-    'en/main/demos/brights/markdown-richtext/page-with-markdown',
-    'en/main/demos/brights/markdown-richtext/page-with-gateddownloadsexpandableitem',
-    'en/main/demos/brights/markdown-richtext/page-with-columngridtextonly',
-    'en/main/demos/brights/markdown-richtext/page-with-imagecarousel',
     'en/main/demos/brights/markdown-richtext/page-with-downloads',
-    'en/main/demos/brights/markdown-richtext/page-with-columngridtextitem',
     'en/main/demos/brights/markdown-richtext/page-with-downloadsexpandableitem',
-    'en/main/demos/brights/markdown-richtext/page-with-columngridvideoitem',
+    'en/main/demos/brights/markdown-richtext/page-with-editorialmarkdown',
+    'en/main/demos/brights/markdown-richtext/page-with-embed',
+    'en/main/demos/brights/markdown-richtext/page-with-gateddownloadsexpandableitem',
     'en/main/demos/brights/markdown-richtext/page-with-gatedform',
-    'en/main/demos/brights/markdown-richtext/enhancing-aviation-safety-and-design-with-eye-tracking',
-    'en/main/demos/brights/markdown-richtext/the-future-of-eye-tracking-in-workforce-development',
-    'en/main/demos/brights/markdown-richtext/blinks-a-hidden-gem-in-eye-tracking-research',
-    'en/main/demos/brights/markdown-richtext/improving-thoracoscopic-surgery-training-with-eye-tracking',
+    'en/main/demos/brights/markdown-richtext/page-with-herosmall',
+    'en/main/demos/brights/markdown-richtext/page-with-imagecarousel',
+    'en/main/demos/brights/markdown-richtext/page-with-markdown',
+    'en/main/demos/brights/markdown-richtext/page-with-overlayblock',
+    'en/main/demos/brights/markdown-richtext/page-with-shortfeatures',
+    'en/main/demos/brights/markdown-richtext/page-with-techspec',
+    'en/main/demos/brights/markdown-richtext/page-with-techspecfootnote',
+    'en/main/demos/brights/markdown-richtext/page-with-techspecitem',
+    'en/main/demos/brights/markdown-richtext/page-with-textandimage',
+    'en/main/demos/brights/markdown-richtext/page-with-textandimageparallax',
+    'en/main/demos/brights/markdown-richtext/page-with-textandvideo',
+    'en/main/demos/brights/markdown-richtext/page-with-videocarousel',
     'en/main/demos/brights/markdown-richtext/studying-the-beauty-of-hair-with-eye-tracking',
-    'en/main/demos/brights/markdown-richtext/transforming-autism-social-skills-training-with-eye-tracking-ja',
+    'en/main/demos/brights/markdown-richtext/the-future-of-eye-tracking-in-workforce-development',
     'en/main/demos/brights/markdown-richtext/transforming-autism-social-skills-training-with-eye-tracking',
+    'en/main/demos/brights/markdown-richtext/transforming-autism-social-skills-training-with-eye-tracking-ja',
     'en/main/demos/brights/markdown-richtext/transportation-services',
-    'en/main/demos/brights/markdown-richtext/a-practical-introduction-to-eye-tracking',
+    'en/main/demos/brights/markdown-richtext/rights-issue-2024'
 ]
 export const EDITORIAL_MARKDOWN_PLUGIN_NAME = 'editorialMarkdown';
 export const MARKDOWN_PLUGIN_NAME = 'markdown';
+
+const WARM_UP_COMPARING_COUNT = 15;
+const TIMEOUT_BETWEEN_WARM_UP_COMPARING = 10000
+const TIMEOUT_BETWEEN_UPDATE_ENDS_AND_COMPARING = 60000
 
 const getDataFolderPath = () => {
     const __dirname = fileURLToPath(import.meta.url).replace(/\/[^\/]*$/, '');
@@ -185,6 +191,49 @@ const getComponentsToUpdate = (components) => {
     })
 }
 
+async function rollbackStory(story) {
+    console.log('Rolling back migration...');
+
+    const isPublished = await storyblokService.isStoryPublished(story.full_slug);
+    const response = await storyblokService.updateStory(
+        story.id,
+        story,
+        {
+            force_update: 1,
+            ...( isPublished ? { publish: 1 } : {} )
+        }
+    );
+    if (response?.status === 200) {
+        if ( isPublished ) {
+            console.log(`Story ${story.id} updated and publish successfully`);
+        } else {
+            console.log(`Story ${story.id} updated but NOT published successfully`);
+        }
+    } else {
+        console.log(`Failed to update story ID ${story.id}`);
+    }
+    process.exit(1);
+}
+
+const compareWithFirstScreenshot = async (screenshotInstance, story) => {
+    if (
+        !screenshotInstance ||
+        typeof screenshotInstance.take !== 'function' ||
+        typeof screenshotInstance.compare !== 'function'
+    ) {
+        throw new TypeError('The screenshotInstance should be a function');
+    }
+
+    await screenshotInstance.take('after')
+
+    try {
+        await screenshotInstance.compare()
+    } catch (err) {
+        console.error(err.message);
+        await rollbackStory(story);
+    }
+}
+
 // Main bootstrap function
 const bootstrap = async () => {
     try {
@@ -234,7 +283,8 @@ const bootstrap = async () => {
 
         await saveToFile('data-to-update', dataBeforeUpdate);
 
-        for (const story of dataBeforeUpdate) {
+        const toCompareCollection = []
+        for (const [index, story] of dataBeforeUpdate?.entries()) {
             const screenshotService = new ScreenshotService(
                 story.uuid,
                 `${configService.get('PREVIEW_URL') || 'https://tobiiweb-preview.azurewebsites.net/'}/${story.full_slug}`
@@ -243,35 +293,25 @@ const bootstrap = async () => {
             await screenshotService.take('before');
             await updateStory(story, componentMap);
 
-            await sleep(7000)
+            console.log(`${index} (${story.full_slug}):`);
 
-            await screenshotService.take('after');
+            if (index < WARM_UP_COMPARING_COUNT) {
+                await sleep(TIMEOUT_BETWEEN_WARM_UP_COMPARING);
+                await compareWithFirstScreenshot(screenshotService, story);
+            } else {
+                toCompareCollection.push(() => compareWithFirstScreenshot(screenshotService, story));
+            }
+        }
 
-            try {
-                await screenshotService.compare()
-            } catch (err) {
-                console.error(err.message);
-                console.log('Rolling back migration...');
+        await sleep(TIMEOUT_BETWEEN_UPDATE_ENDS_AND_COMPARING);
 
-                const isPublished = await storyblokService.isStoryPublished(story.full_slug);
-                const response = await storyblokService.updateStory(
-                    story.id,
-                    story,
-                    {
-                        force_update: 1,
-                        ...( isPublished ? { publish: 1 } : {} )
-                    }
-                );
-                if (response?.status === 200) {
-                    if ( isPublished ) {
-                        console.log(`Story ${story.id} updated and publish successfully`);
-                    } else {
-                        console.log(`Story ${story.id} updated but NOT published successfully`);
-                    }
-                } else {
-                    console.log(`Failed to update story ID ${story.id}`);
+        console.log('=== COMPARE ===')
+
+        if (toCompareCollection.length > 0) {
+            for (const callback of toCompareCollection) {
+                if (typeof callback === 'function') {
+                    await callback()
                 }
-                process.exit(1);
             }
         }
     } catch (err) {
