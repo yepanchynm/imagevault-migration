@@ -20,43 +20,43 @@ const STORIES_TO_UPDATE = [
     // 'en/main/demos/brights/rich-text-conversion-test-page'
     // 'en/main/demos/brights/rich-text-conversion-test-page',
 
-    'en/main/demos/brights/markdown-richtext/a-practical-introduction-to-eye-tracking',
-    'en/main/demos/brights/markdown-richtext/blinks-a-hidden-gem-in-eye-tracking-research',
-    'en/main/demos/brights/markdown-richtext/enhancing-aviation-safety-and-design-with-eye-tracking',
-    'en/main/demos/brights/markdown-richtext/improving-thoracoscopic-surgery-training-with-eye-tracking',
-    'en/main/demos/brights/markdown-richtext/page-with-accordion-blok',
-    'en/main/demos/brights/markdown-richtext/page-with-columngrid',
-    'en/main/demos/brights/markdown-richtext/page-with-columngridimageitem',
-    'en/main/demos/brights/markdown-richtext/page-with-columngridtextitem',
-    'en/main/demos/brights/markdown-richtext/page-with-columngridtextonly',
-    'en/main/demos/brights/markdown-richtext/page-with-columngridvideoitem',
-    'en/main/demos/brights/markdown-richtext/page-with-contentgrid',
-    'en/main/demos/brights/markdown-richtext/page-with-contentgridslider',
-    'en/main/demos/brights/markdown-richtext/page-with-ctaform',
-    'en/main/demos/brights/markdown-richtext/page-with-downloads',
-    'en/main/demos/brights/markdown-richtext/page-with-downloadsexpandableitem',
-    'en/main/demos/brights/markdown-richtext/page-with-editorialmarkdown',
-    'en/main/demos/brights/markdown-richtext/page-with-embed',
-    'en/main/demos/brights/markdown-richtext/page-with-gateddownloadsexpandableitem',
-    'en/main/demos/brights/markdown-richtext/page-with-gatedform',
-    'en/main/demos/brights/markdown-richtext/page-with-herosmall',
-    'en/main/demos/brights/markdown-richtext/page-with-imagecarousel',
-    'en/main/demos/brights/markdown-richtext/page-with-markdown',
-    'en/main/demos/brights/markdown-richtext/page-with-overlayblock',
-    'en/main/demos/brights/markdown-richtext/page-with-shortfeatures',
-    'en/main/demos/brights/markdown-richtext/page-with-techspec',
-    'en/main/demos/brights/markdown-richtext/page-with-techspecfootnote',
-    'en/main/demos/brights/markdown-richtext/page-with-techspecitem',
-    'en/main/demos/brights/markdown-richtext/page-with-textandimage',
-    'en/main/demos/brights/markdown-richtext/page-with-textandimageparallax',
+    // 'en/main/demos/brights/markdown-richtext/a-practical-introduction-to-eye-tracking',
+    // 'en/main/demos/brights/markdown-richtext/blinks-a-hidden-gem-in-eye-tracking-research',
+    // 'en/main/demos/brights/markdown-richtext/enhancing-aviation-safety-and-design-with-eye-tracking',
+    // 'en/main/demos/brights/markdown-richtext/improving-thoracoscopic-surgery-training-with-eye-tracking',
+    // 'en/main/demos/brights/markdown-richtext/page-with-accordion-blok',
+    // 'en/main/demos/brights/markdown-richtext/page-with-columngrid',
+    // 'en/main/demos/brights/markdown-richtext/page-with-columngridimageitem',
+    // 'en/main/demos/brights/markdown-richtext/page-with-columngridtextitem',
+    // 'en/main/demos/brights/markdown-richtext/page-with-columngridtextonly',
+    // 'en/main/demos/brights/markdown-richtext/page-with-columngridvideoitem',
+    // 'en/main/demos/brights/markdown-richtext/page-with-contentgrid',
+    // 'en/main/demos/brights/markdown-richtext/page-with-contentgridslider',
+    // 'en/main/demos/brights/markdown-richtext/page-with-ctaform',
+    // 'en/main/demos/brights/markdown-richtext/page-with-downloads',
+    // 'en/main/demos/brights/markdown-richtext/page-with-downloadsexpandableitem',
+    // 'en/main/demos/brights/markdown-richtext/page-with-editorialmarkdown',
+    // 'en/main/demos/brights/markdown-richtext/page-with-embed',
+    // 'en/main/demos/brights/markdown-richtext/page-with-gateddownloadsexpandableitem',
+    // 'en/main/demos/brights/markdown-richtext/page-with-gatedform',
+    // 'en/main/demos/brights/markdown-richtext/page-with-herosmall',
+    // 'en/main/demos/brights/markdown-richtext/page-with-imagecarousel',
+    // 'en/main/demos/brights/markdown-richtext/page-with-markdown',
+    // 'en/main/demos/brights/markdown-richtext/page-with-overlayblock',
+    // 'en/main/demos/brights/markdown-richtext/page-with-shortfeatures',
+    // 'en/main/demos/brights/markdown-richtext/page-with-techspec',
+    // 'en/main/demos/brights/markdown-richtext/page-with-techspecfootnote',
+    // 'en/main/demos/brights/markdown-richtext/page-with-techspecitem',
+    // 'en/main/demos/brights/markdown-richtext/page-with-textandimage',
+    // 'en/main/demos/brights/markdown-richtext/page-with-textandimageparallax',
     'en/main/demos/brights/markdown-richtext/page-with-textandvideo',
     'en/main/demos/brights/markdown-richtext/page-with-videocarousel',
-    'en/main/demos/brights/markdown-richtext/studying-the-beauty-of-hair-with-eye-tracking',
-    'en/main/demos/brights/markdown-richtext/the-future-of-eye-tracking-in-workforce-development',
-    'en/main/demos/brights/markdown-richtext/transforming-autism-social-skills-training-with-eye-tracking',
-    'en/main/demos/brights/markdown-richtext/transforming-autism-social-skills-training-with-eye-tracking-ja',
+    // 'en/main/demos/brights/markdown-richtext/studying-the-beauty-of-hair-with-eye-tracking',
+    // 'en/main/demos/brights/markdown-richtext/the-future-of-eye-tracking-in-workforce-development',
+    // 'en/main/demos/brights/markdown-richtext/transforming-autism-social-skills-training-with-eye-tracking',
+    // 'en/main/demos/brights/markdown-richtext/transforming-autism-social-skills-training-with-eye-tracking-ja',
     // 'en/main/demos/brights/markdown-richtext/transportation-services',
-    'en/main/demos/brights/markdown-richtext/rights-issue-2024'
+    // 'en/main/demos/brights/markdown-richtext/rights-issue-2024'
 ]
 export const EDITORIAL_MARKDOWN_PLUGIN_NAME = 'editorialMarkdown';
 export const MARKDOWN_PLUGIN_NAME = 'markdown';
@@ -169,17 +169,20 @@ const updateStory = async (storyData, componentMap) => {
 
     if (storyData.id && storyData.full_slug) {
         const isPublished = await storyblokService.isStoryPublished(storyData.full_slug);
-        if (isPublished) {
-            const response = await storyblokService.updateStory(
-                storyData.id,
-                updatedStoryData,
-                isPublished ? {  force_update: 1, publish: 1 } : {}
-            );
-            if (response?.status === 200) {
+        const response = await storyblokService.updateStory(
+            storyData.id,
+            updatedStoryData,
+            isPublished ? {  force_update: 1, publish: 1 } : { force_update: 1 }
+        );
+        if (response?.status === 200) {
+            if (isPublished) {
                 console.log(`Story ${storyData.id} updated and publish successfully`);
             } else {
-                console.log(`Failed to update story ID ${storyData.id}`);
+                console.log(`Story ${storyData.id} updated and NOT publish successfully`);
             }
+
+        } else {
+            console.log(`Failed to update story ID ${storyData.id}`);
         }
     }
 }
@@ -307,11 +310,10 @@ const bootstrap = async () => {
             }
         }
 
-        await sleep(TIMEOUT_BETWEEN_UPDATE_ENDS_AND_COMPARING);
-
-        console.log('=== COMPARE ===')
-
         if (toCompareCollection.length > 0) {
+            console.log('=== COMPARE ===')
+            await sleep(TIMEOUT_BETWEEN_UPDATE_ENDS_AND_COMPARING);
+
             for (const callback of toCompareCollection) {
                 if (typeof callback === 'function') {
                     await callback()
