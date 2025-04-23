@@ -285,6 +285,10 @@ const bootstrap = async () => {
 
         const toCompareCollection = []
         for (const [index, story] of dataBeforeUpdate?.entries()) {
+            if (story.full_slug.startsWith('es/') || story.full_slug.startsWith('de/') || story.full_slug.startsWith('fr/'))
+            {
+                continue
+            }
             const screenshotService = new ScreenshotService(
                 story.uuid,
                 `${configService.get('PREVIEW_URL') || 'https://tobiiweb-preview.azurewebsites.net/'}/${story.full_slug}`
