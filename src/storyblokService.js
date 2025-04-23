@@ -23,12 +23,12 @@ class StoryblokService {
         const lastPage = total ? Math.ceil(total / perPage) : 1
 
         let otherStories = [];
-        // for (let currentPage = 2; currentPage <= lastPage; currentPage++) {
-        //     page = currentPage;
-        //     url = `/stories?version=draft&per_page=${perPage}&page=${page}`
-        //     const res =  await getInstance.get(url);
-        //     otherStories.push(res.data.stories);
-        // }
+        for (let currentPage = 2; currentPage <= lastPage; currentPage++) {
+            page = currentPage;
+            url = `/stories?version=draft&per_page=${perPage}&page=${page}`
+            const res =  await getInstance.get(url);
+            otherStories.push(res.data.stories);
+        }
 
         return [firstResponse.data.stories, ...otherStories].flat();
     }
