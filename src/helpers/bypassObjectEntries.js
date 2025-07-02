@@ -16,6 +16,14 @@ export async function bypassObjectEntries(obj) {
             delete newObj.item;
         }
 
+        if (
+            newObj.seoMeta &&
+            newObj.seoTitle &&
+            newObj.seoDescription
+        ) {
+            delete newObj.seoMeta;
+        }
+
         for (const key of Object.keys(newObj)) {
             newObj[key] = await bypassObjectEntries(newObj[key]);
         }

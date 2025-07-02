@@ -4,7 +4,7 @@ import { join } from 'path';
 import { ReplaceStoryImagesService } from "./replaceStoryImagesService.js";
 import { fileURLToPath } from 'url';
 import { restoreStoriesFromFile, restoreComponentsFromFile } from './helpers/restore.js';
-import {configService} from "./configService.js";
+import { configService } from "./configService.js";
 
 const getDataFolderPath = () => {
     const __dirname = fileURLToPath(import.meta.url).replace(/\/[^\/]*$/, '');
@@ -45,20 +45,18 @@ const updateStory = async (storyData) => {
 
     if (storyData.id && storyData.full_slug) {
         const isPublished = await storyblokService.isStoryPublished(storyData.full_slug);
-        if (isPublished) {
-            const response = await storyblokService.updateStory(
-                storyData.id,
-                storyData,
-                {
-                    // force_update: 1,
-                    publish: 1
-                }
-            );
-            if (response?.status === 200) {
-                console.log(`Story ${storyData.id} updated and publish successfully`);
-            } else {
-                console.log(`Failed to update story ID ${storyData.id}`);
+        const response = await storyblokService.updateStory(
+            storyData.id,
+            updatedStoryData,
+            {
+                // force_update: 1,
+                ...( isPublished ? { publish: 1 } : {} )
             }
+        );
+        if (response?.status === 200) {
+            console.log(`Story ${updatedStoryData.id} updated and ${isPublished ? 'published' : 'saved as draft'} successfully`);
+        } else {
+            console.log(`Failed to update story ID ${updatedStoryData.id}`);
         }
     }
 }
@@ -73,18 +71,17 @@ const bootstrap = async () => {
             const restoreData = await fs.readFile(getStoryFilename('data-to-update'));
             const stories = JSON.parse(restoreData);
             await restoreStoriesFromFile(stories);
-            
-            const restoredComponents = await fs.readFile(getStoryFilename('components-to-update'));
-            const components = JSON.parse(restoredComponents);
-            await restoreComponentsFromFile(components);
             return
         }
 
         const dataBeforeUpdate = await storyblokService.getAllStories();
         await saveToFile('data-to-update', dataBeforeUpdate);
-
         for (const story of dataBeforeUpdate) {
-            await updateStory(story);
+            try {
+                 await updateStory(story);
+            } catch (error) {
+                console.error(`Failed to update story with id ${story?.id}:`, error);
+            }
         }
     } catch (err) {
         console.error('Error in bootstrap:', err);

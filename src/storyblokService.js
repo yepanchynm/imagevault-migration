@@ -26,7 +26,7 @@ class StoryblokService {
             otherStories.push(res.data.stories);
         }
 
-        return [firstResponse.data.stories].flat();
+        return [firstResponse.data.stories, ...otherStories].flat();
     }
 
     async getStoryBySlug(storySlug) {

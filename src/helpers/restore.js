@@ -24,23 +24,3 @@ export async function restoreStoriesFromFile(stories) {
 
     return;
 }
-
-export async function restoreComponentsFromFile(components) {
-    for (const component of components) {
-        try {
-            const response = await storyblokService.updateComponentById(component.id, component);
-            
-            if (response.status === 200) {
-                console.log(`Component ${component.id} restored successfully`);
-            } else {
-                console.log(`Failed to restore component ID ${component.id}`);
-            }
-        } catch (err) {
-            console.log(`Failed to restore component ID ${component.id}`);
-        }
-    }
-
-    console.log('All components have been restored successfully');
-
-    return;
-}
